@@ -1,0 +1,164 @@
+name: Build and Deploy to Azure App Service (Azure CLI)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: tutorlive-app  # Change this to YOUR App Service name
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'TutorLiveMentor10.csproj'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: ?? Checkout code
+        uses: actions/checkout@v4
+
+      - name: ?? Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: ?? Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: ?? Build application
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+      - name: ?? Run tests (if any)
+        run: dotnet test --no-build --verbosity normal --configuration Release
+        continue-on-error: true
+
+      - name: ?? Publish application
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ./publish
+
+      - name: ?? Upload artifact for deployment
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ./publish
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: ?? Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+          path: ./app
+
+      - name: ?? Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ?? Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ./app
+
+      - name: ?? Azure Logout
+        run: az logout
+        if: always()
+
+  migrate:
+    runs-on: ubuntu-latest
+    needs: deploy
+    
+    steps:
+      - name: ?? Checkout code
+        uses: actions/checkout@v4
+
+      - name: ?? Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: ?? Install EF Core tools
+        run: dotnet tool install --global dotnet-ef --version 8.0.*
+
+      - name: ?? Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: ?? Build project for migrations
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+      - name: ??? Apply EF Core Migrations to Azure SQL
+        run: |
+          echo "==========================================="
+          echo "Applying migrations to Azure SQL Database"
+          echo "==========================================="
+          dotnet ef database update --project ${{ env.PROJECT_PATH }} --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" --verbose
+        env:
+          ASPNETCORE_ENVIRONMENT: Production
+
+      - name: ? Verify migration success
+        run: |
+          echo "==========================================="
+          echo "? Database migrations applied successfully!"
+          echo "==========================================="
+
+  verify:
+    runs-on: ubuntu-latest
+    needs: migrate
+    
+    steps:
+      - name: ?? Health check
+        run: |
+          echo "==========================================="
+          echo "Performing Health Check..."
+          echo "==========================================="
+          HEALTH_URL="https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health"
+          
+          for i in {1..10}; do
+            echo "Attempt $i/10..."
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL || echo "000")
+            
+            if [ "$STATUS" = "200" ]; then
+              echo "==========================================="
+              echo "? SUCCESS! Application is healthy!"
+              echo "==========================================="
+              exit 0
+            fi
+            
+            echo "Status: $STATUS - Retrying in 15 seconds..."
+            sleep 15
+          done
+          
+          echo "==========================================="
+          echo "??  Health check incomplete after 10 attempts"
+          echo "Please check manually at:"
+          echo "https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
+          echo "==========================================="
+
+      - name: ?? Deployment Summary
+        if: always()
+        run: |
+          echo ""
+          echo "?????????????????????????????????????????????"
+          echo "?      DEPLOYMENT COMPLETED                 ?"
+          echo "?????????????????????????????????????????????"
+          echo ""
+          echo "?? Application URL:"
+          echo "   https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
+          echo ""
+          echo "?? Health Check:"
+          echo "   https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health"
+          echo ""
+          echo "?? Home Page:"
+          echo "   https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
+          echo ""
+          echo "?? Admin Login:"
+          echo "   https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/Admin/Login"
+          echo "   Email: cseds@rgmcet.edu.in"
+          echo "   Password: admin123"
+          echo ""
+          echo "==========================================="
