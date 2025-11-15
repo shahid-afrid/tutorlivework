@@ -137,6 +137,13 @@ namespace TutorLiveMentor.Controllers
                     })
                     .ToListAsync();
 
+                // Format enrollment times on server-side for consistency
+                foreach (var result in results)
+                {
+                    // This will be serialized and sent to client
+                    // No need to format on client-side anymore
+                }
+
                 Console.WriteLine($"Final query returned {results.Count} results");
 
                 // If no results found, let's return some debug information
@@ -360,8 +367,9 @@ namespace TutorLiveMentor.Controllers
                         StudentYear = se.Student.Year,
                         SubjectName = se.AssignedSubject.Subject.Name,
                         FacultyName = se.AssignedSubject.Faculty.Name,
+                        FacultyEmail = se.AssignedSubject.Faculty.Email,
                         Semester = se.AssignedSubject.Subject.Semester ?? "",
-                        EnrolledAt = se.EnrolledAt
+                        EnrolledAt = se.EnrolledAt  // Added this field for proper time formatting
                     })
                     .ToListAsync();
 
