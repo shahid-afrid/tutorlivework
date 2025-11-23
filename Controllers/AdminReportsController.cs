@@ -394,7 +394,7 @@ namespace TutorLiveMentor.Controllers
 
                 // Date
                 var dateFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
-                var dateText = new Paragraph($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", dateFont);
+                var dateText = new Paragraph($"Generated on: {DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")}", dateFont);
                 dateText.Alignment = Element.ALIGN_RIGHT;
                 dateText.SpacingAfter = 20;
                 document.Add(dateText);
@@ -688,7 +688,7 @@ namespace TutorLiveMentor.Controllers
 
                 // Date
                 var dateFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
-                var dateText = new Paragraph($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", dateFont);
+                var dateText = new Paragraph($"Generated on: {DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")}", dateFont);
                 dateText.Alignment = Element.ALIGN_RIGHT;
                 dateText.SpacingAfter = 20;
                 document.Add(dateText);
@@ -934,7 +934,7 @@ namespace TutorLiveMentor.Controllers
 
                 // Date
                 var dateFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
-                var dateText = new Paragraph($"Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}", dateFont);
+                var dateText = new Paragraph($"Generated on: {DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")}", dateFont);
                 dateText.Alignment = Element.ALIGN_RIGHT;
                 dateText.SpacingAfter = 20;
                 document.Add(dateText);
