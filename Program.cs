@@ -58,7 +58,7 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
     };
 });
 
-// [SECURITY] Configure secure session with proper security settings
+// [SECURITY] Configure secure session with Azure-compatible settings
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -66,17 +66,36 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true; // Prevent JavaScript access
     options.Cookie.IsEssential = true; // Always send cookie
     options.Cookie.Name = "TutorLiveMentor.Session";
-    options.Cookie.SameSite = SameSiteMode.Strict; // [SECURITY] Changed from Lax to Strict
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // [SECURITY] HTTPS only
-    options.Cookie.MaxAge = TimeSpan.FromHours(8); // [SECURITY] Max session duration
+    options.Cookie.SameSite = SameSiteMode.Lax; // [FIX] Changed from Strict to Lax for Azure compatibility
+    
+    // [FIX] Only require HTTPS in production, not in development
+    if (builder.Environment.IsProduction())
+    {
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    }
+    else
+    {
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
+    
+    options.Cookie.MaxAge = TimeSpan.FromHours(8); // Max session duration
 });
 
-// [SECURITY] Add anti-forgery with secure configuration
+// [SECURITY] Add anti-forgery with Azure-compatible configuration
 builder.Services.AddAntiforgery(options =>
 {
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    // [FIX] Only require HTTPS in production
+    if (builder.Environment.IsProduction())
+    {
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    }
+    else
+    {
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
+    
     options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SameSite = SameSiteMode.Lax; // [FIX] Changed from Strict to Lax
     options.HeaderName = "X-XSRF-TOKEN";
 });
 
@@ -132,8 +151,12 @@ else
     app.UseDeveloperExceptionPage();
 }
 
-// [SECURITY] Force HTTPS redirect (ENABLED)
-app.UseHttpsRedirection();
+// [FIX] Only force HTTPS redirect in production
+// Azure handles HTTPS termination at the load balancer
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // [SECURITY] Add custom security headers middleware
 app.UseSecurityHeaders();
@@ -188,9 +211,10 @@ app.MapControllerRoute(
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("========================================");
 logger.LogInformation("TutorLiveMentor Server Starting...");
+logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
 logger.LogInformation("========================================");
-logger.LogInformation("[SECURITY] HTTPS Redirect: ENABLED");
-logger.LogInformation("[SECURITY] HSTS: ENABLED (Production only)");
+logger.LogInformation("[SECURITY] HTTPS Redirect: {Status}", app.Environment.IsProduction() ? "ENABLED" : "DISABLED (Development)");
+logger.LogInformation("[SECURITY] HSTS: {Status}", app.Environment.IsProduction() ? "ENABLED" : "DISABLED (Development)");
 logger.LogInformation("[SECURITY] Rate Limiting: ENABLED");
 logger.LogInformation("[SECURITY] Secure Sessions: ENABLED");
 logger.LogInformation("[SECURITY] Security Headers: ENABLED");
