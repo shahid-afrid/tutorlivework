@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TutorLiveMentor.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -94,7 +94,9 @@ namespace TutorLiveMentor.Migrations
                     Year = table.Column<int>(type: "int", nullable: false),
                     Semester = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SemesterStartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    SemesterEndDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    SemesterEndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    SubjectType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MaxEnrollments = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {

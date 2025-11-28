@@ -12,8 +12,8 @@ using TutorLiveMentor.Models;
 namespace TutorLiveMentor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251127112651_UpdateSubjectTypeDefault")]
-    partial class UpdateSubjectTypeDefault
+    [Migration("20251128021006_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
