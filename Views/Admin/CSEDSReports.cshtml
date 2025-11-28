@@ -395,10 +395,8 @@
                     <label class="form-label">Semester</label>
                     <select id="reportSemester" class="form-control">
                         <option value="">All Semesters</option>
-                        @foreach (var semester in Model.AvailableSemesters)
-                        {
-                            <option value="@semester.Value">@semester.Text</option>
-                        }
+                        <option value="I">Semester I (1)</option>
+                        <option value="II">Semester II (2)</option>
                     </select>
                 </div>
             </div>

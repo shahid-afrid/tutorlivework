@@ -30,6 +30,12 @@
             --warning-orange: #fd7e14;
         }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             min-height: 100vh;
             margin: 0;
@@ -57,7 +63,7 @@
         .main-container {
             position: relative;
             z-index: 1;
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 0 20px;
         }
@@ -183,19 +189,6 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(10px);
             animation: slideDown 0.5s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .alert::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: inherit;
-            z-index: -1;
         }
 
         .alert-success {
@@ -205,12 +198,6 @@
             box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
         }
 
-        .alert-success i {
-            font-size: 1.5em;
-            color: var(--success-green);
-            animation: bounceIn 0.6s ease;
-        }
-
         .alert-danger {
             color: #721c24;
             background: linear-gradient(135deg, rgba(248, 215, 218, 0.98), rgba(242, 200, 203, 0.98));
@@ -218,185 +205,172 @@
             box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
         }
 
-        .alert-danger i {
+        .alert-info {
+            color: #004085;
+            background: linear-gradient(135deg, rgba(217, 237, 247, 0.98), rgba(190, 229, 250, 0.98));
+            border-color: #17a2b8;
+            box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
+        }
+
+        .alert i {
             font-size: 1.5em;
-            color: var(--error-red);
             animation: bounceIn 0.6s ease;
         }
 
         @@keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @@keyframes bounceIn {
-            0% {
-                transform: scale(0);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Subject Cards Grid - 3 columns */
+        /* MAIN GRID LAYOUT - Side by side */
         .subjects-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 25px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
         }
 
-        .subject-card {
-            background: rgba(249,250,242,0.95);
-            border-radius: 18px;
-            padding: 20px;
+        /* SUBJECT CARD - Core and Elective Subjects */
+        .subject-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
             backdrop-filter: blur(12px);
             border: 3px solid var(--slate);
             box-shadow: 0 8px 32px var(--card-shadow);
             transition: all 0.3s ease;
         }
 
-        .subject-card:hover {
+        .subject-section:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 45px var(--card-shadow);
             border-color: var(--warm-gold);
         }
 
-        .subject-header {
-            text-align: center;
-            margin-bottom: 18px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--slate);
-        }
-
-        .subject-icon {
-            font-size: 2.5em;
-            color: var(--royal-blue);
-            margin-bottom: 10px;
-        }
-
-        .subject-name {
-            font-size: 1.4em;
+        .section-title {
+            font-size: 1.8em;
             font-weight: 700;
             color: var(--royal-blue);
-            margin: 0;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--warm-gold);
+            text-align: center;
             letter-spacing: 0.5px;
         }
 
-        /* Faculty List inside Subject Card */
-        .faculty-list {
+        .section-subtitle {
+            font-size: 0.95em;
+            color: #666;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        .section-subtitle strong {
+            color: var(--error-red);
+        }
+
+        /* Faculty/Subject Items List */
+        .items-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
         }
 
-        .faculty-item {
-            background: rgba(255, 255, 255, 0.7);
+        .item-card {
+            background: rgba(249, 250, 242, 0.9);
             border: 2px solid var(--slate);
-            border-radius: 10px;
-            padding: 12px 15px;
+            border-radius: 12px;
+            padding: 18px 20px;
             transition: all 0.3s ease;
-            position: relative;
         }
 
-        .faculty-item:hover {
-            background: rgba(255, 255, 255, 0.9);
+        .item-card:hover {
+            background: rgba(255, 255, 255, 0.95);
             border-color: var(--warm-gold);
-            transform: translateX(3px);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px var(--card-shadow);
         }
 
-        .faculty-item.full {
+        .item-card.full {
             opacity: 0.65;
             border-color: var(--error-red);
             background: rgba(220, 53, 69, 0.05);
         }
 
-        .faculty-name {
-            font-size: 1em;
-            font-weight: 600;
-            color: var(--royal-blue);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .faculty-actions {
+        .item-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .item-name {
+            font-size: 1.15em;
+            font-weight: 600;
+            color: var(--royal-blue);
+            flex: 1;
+        }
+
+        .item-faculty {
+            font-size: 0.95em;
+            color: #666;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .item-actions {
+            display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        .faculty-info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .enroll-btn {
-            background: linear-gradient(135deg, var(--success-green), var(--warm-gold));
+        .action-btn {
+            background: var(--success-green);
             color: white;
             border: none;
-            border-radius: 6px;
-            padding: 6px 16px;
-            font-size: 0.85em;
-            font-weight: 600;
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-size: 0.9em;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
+            text-transform: uppercase;
+            min-width: 90px;
         }
 
-        .enroll-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, var(--warm-gold), var(--success-green));
+        .action-btn:hover:not(:disabled) {
+            background: var(--warm-gold);
             transform: scale(1.05);
             box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         }
 
-        .enroll-btn:disabled {
-            background: var(--error-red);
+        .action-btn:disabled {
+            background: var(--slate);
             cursor: not-allowed;
             opacity: 0.7;
         }
 
-        .enrollment-count {
-            font-size: 0.9em;
-            font-weight: 600;
-            color: var(--royal-blue);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .enrollment-count.warning {
-            color: var(--warning-orange);
-        }
-
-        .enrollment-count.full {
-            color: var(--error-red);
+        .action-btn.full {
+            background: var(--error-red);
         }
 
         .count-badge {
             background: var(--royal-blue);
             color: white;
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-size: 0.85em;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-size: 0.9em;
             font-weight: 700;
+            min-width: 60px;
+            text-align: center;
         }
 
         .count-badge.warning {
@@ -439,93 +413,10 @@
             margin: 0 auto;
         }
 
-        /* Real-time Notifications */
-        .notification-container {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            width: 350px;
-            max-height: 400px;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-
-        .notification {
-            background: rgba(249,250,242,0.95);
-            border: 2px solid var(--slate);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px var(--card-shadow);
-            backdrop-filter: blur(8px);
-            animation: slideIn 0.3s ease;
-        }
-
-        .notification.success { border-color: var(--success-green); }
-        .notification.warning { border-color: var(--warning-orange); }
-        .notification.error { border-color: var(--error-red); }
-
-        .notification .close-btn {
-            float: right;
-            cursor: pointer;
-            color: #999;
-            font-weight: bold;
-        }
-
-        @@keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
         /* Responsive Design */
-        @@media (max-width: 1200px) {
-            .subjects-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @@media (max-width: 768px) {
-            .main-container {
-                padding: 0 15px;
-            }
-
-            .dashboard-header {
-                padding: 30px 20px;
-            }
-
-            .dashboard-header h2 {
-                font-size: 2em;
-            }
-
+        @@media (max-width: 1024px) {
             .subjects-grid {
                 grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .subject-card {
-                padding: 20px;
-            }
-
-            .nav-link {
-                position: static;
-                display: inline-block;
-                margin-bottom: 20px;
-            }
-
-            .connection-status {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin-bottom: 15px;
-                justify-content: center;
-            }
-
-            .notification-container {
-                position: relative;
-                top: 0;
-                right: 0;
-                width: 100%;
-                margin-bottom: 20px;
             }
         }
     </style>
@@ -537,9 +428,6 @@
     <div class="connection-status disconnected" id="connectionStatus">
         <span class="status-dot connecting"></span> Connecting...
     </div>
-
-    <!-- Real-time Notifications -->
-    <div class="notification-container" id="notificationContainer"></div>
 
     <div class="main-container">
         <div class="dashboard-header">
@@ -565,64 +453,226 @@
             </div>
         }
 
-        @if (Model.AvailableSubjectsGrouped.Any())
-        {
-            <div class="subjects-grid">
-                @foreach (var subjectGroup in Model.AvailableSubjectsGrouped)
-                {
-                    <div class="subject-card">
-                        <!-- Subject Header -->
-                        <div class="subject-header">
-                            <div class="subject-icon">
-                                <i class="fas fa-book"></i>
-                            </div>
-                            <h3 class="subject-name">@subjectGroup.Key</h3>
-                        </div>
+        @* MAIN GRID LAYOUT - Core Subjects and Electives Side by Side *@
+        <div class="subjects-grid">
+            
+            @* CORE SUBJECTS *@
+            @foreach (var subjectGroup in Model.AvailableSubjectsGrouped)
+            {
+                <div class="subject-section">
+                    <h3 class="section-title">@subjectGroup.Key</h3>
+                    
+                    <div class="items-list">
+                        @foreach (var assignedSubject in subjectGroup)
+                        {
+                            var maxEnrollments = assignedSubject.Subject.MaxEnrollments ?? 70;
+                            var isFull = assignedSubject.SelectedCount >= maxEnrollments;
+                            var isWarning = assignedSubject.SelectedCount >= (maxEnrollments * 0.85);
 
-                        <!-- Faculty List for this Subject -->
-                        <div class="faculty-list">
-                            @foreach (var assignedSubject in subjectGroup)
-                            {
-                                var isFull = assignedSubject.SelectedCount >= 70;
-                                var isWarning = assignedSubject.SelectedCount >= 60;
+                            <div class="item-card @(isFull ? "full" : "")" data-assigned-subject-id="@assignedSubject.AssignedSubjectId">
+                                <div class="item-header">
+                                    <div style="flex: 1;">
+                                        <div class="item-name">@assignedSubject.Faculty.Name</div>
+                                    </div>
 
-                                <div class="faculty-item @(isFull ? "full" : "")" data-assigned-subject-id="@assignedSubject.AssignedSubjectId">
-                                    <div class="faculty-info-row">
-                                        <div class="faculty-name">
-                                            <i class="fas fa-user-tie"></i>
-                                            @assignedSubject.Faculty.Name
-                                        </div>
+                                    <div class="item-actions">
+                                        <span class="count-badge @(isFull ? "full" : isWarning ? "warning" : "")" data-count="@assignedSubject.SelectedCount" data-max="@maxEnrollments">
+                                            <span class="count-value">@assignedSubject.SelectedCount</span>/@maxEnrollments
+                                        </span>
 
-                                        <div class="faculty-actions">
-                                            <form asp-action="SelectSubject" method="post" style="display: inline;">
-                                                <input type="hidden" name="assignedSubjectId" value="@assignedSubject.AssignedSubjectId" />
-                                                <button type="submit" class="enroll-btn" @(isFull ? "disabled" : "")>
-                                                    @if (isFull)
-                                                    {
-                                                        <i class="fas fa-times"></i>
-                                                        <span>FULL</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <i class="fas fa-check"></i>
-                                                        <span>ENROLL</span>
-                                                    }
-                                                </button>
-                                            </form>
-
-                                            <span class="count-badge @(isFull ? "full" : isWarning ? "warning" : "")" data-count="@assignedSubject.SelectedCount">
-                                                <span class="count-value">@assignedSubject.SelectedCount</span>/70
-                                            </span>
-                                        </div>
+                                        <form asp-action="SelectSubject" method="post" style="display: inline;">
+                                            <input type="hidden" name="assignedSubjectId" value="@assignedSubject.AssignedSubjectId" />
+                                            <button type="submit" class="action-btn @(isFull ? "full" : "")" @(isFull ? "disabled" : "")>
+                                                @(isFull ? "FULL" : "ENROLL")
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
-                            }
-                        </div>
+                            </div>
+                        }
                     </div>
-                }
-            </div>
-        }
-        else
+                </div>
+            }
+
+            @* PROFESSIONAL ELECTIVE-1 *@
+            @if (Model.ProfessionalElective1Subjects != null && Model.ProfessionalElective1Subjects.Any())
+            {
+                <div class="subject-section">
+                    <h3 class="section-title">Professional Elective-1</h3>
+                    <p class="section-subtitle">Select <strong>ONE</strong> subject</p>
+
+                    @if (Model.HasSelectedProfessionalElective1)
+                    {
+                        <div class="alert alert-info" style="margin-bottom: 20px;">
+                            <i class="fas fa-check-circle"></i> Already selected
+                        </div>
+                    }
+
+                    <div class="items-list">
+                        @foreach (var assignedSubject in Model.ProfessionalElective1Subjects)
+                        {
+                            var maxEnrollments = assignedSubject.Subject.MaxEnrollments ?? 70;
+                            var isFull = assignedSubject.SelectedCount >= maxEnrollments;
+                            var isWarning = assignedSubject.SelectedCount >= (maxEnrollments * 0.85);
+
+                            <div class="item-card @(isFull ? "full" : "")" data-assigned-subject-id="@assignedSubject.AssignedSubjectId">
+                                <div class="item-header">
+                                    <div style="flex: 1;">
+                                        <div class="item-name">@assignedSubject.Subject.Name</div>
+                                        <div class="item-faculty">@assignedSubject.Faculty.Name</div>
+                                    </div>
+
+                                    <div class="item-actions">
+                                        <span class="count-badge @(isFull ? "full" : isWarning ? "warning" : "")" data-count="@assignedSubject.SelectedCount">
+                                            <span class="count-value">@assignedSubject.SelectedCount</span>/@maxEnrollments
+                                        </span>
+
+                                        <form asp-action="SelectSubject" method="post" style="display: inline;">
+                                            <input type="hidden" name="assignedSubjectId" value="@assignedSubject.AssignedSubjectId" />
+                                            <button type="submit" class="action-btn @(isFull ? "full" : "")" @(isFull || Model.HasSelectedProfessionalElective1 ? "disabled" : "")>
+                                                @if (isFull)
+                                                {
+                                                    <text>FULL</text>
+                                                }
+                                                else if (Model.HasSelectedProfessionalElective1)
+                                                {
+                                                    <text>LOCKED</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>SELECT</text>
+                                                }
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* PROFESSIONAL ELECTIVE-2 *@
+            @if (Model.ProfessionalElective2Subjects != null && Model.ProfessionalElective2Subjects.Any())
+            {
+                <div class="subject-section">
+                    <h3 class="section-title">Professional Elective-2</h3>
+                    <p class="section-subtitle">Select <strong>ONE</strong> subject</p>
+
+                    @if (Model.HasSelectedProfessionalElective2)
+                    {
+                        <div class="alert alert-info" style="margin-bottom: 20px;">
+                            <i class="fas fa-check-circle"></i> Already selected
+                        </div>
+                    }
+
+                    <div class="items-list">
+                        @foreach (var assignedSubject in Model.ProfessionalElective2Subjects)
+                        {
+                            var maxEnrollments = assignedSubject.Subject.MaxEnrollments ?? 70;
+                            var isFull = assignedSubject.SelectedCount >= maxEnrollments;
+                            var isWarning = assignedSubject.SelectedCount >= (maxEnrollments * 0.85);
+
+                            <div class="item-card @(isFull ? "full" : "")" data-assigned-subject-id="@assignedSubject.AssignedSubjectId">
+                                <div class="item-header">
+                                    <div style="flex: 1;">
+                                        <div class="item-name">@assignedSubject.Subject.Name</div>
+                                        <div class="item-faculty">@assignedSubject.Faculty.Name</div>
+                                    </div>
+
+                                    <div class="item-actions">
+                                        <span class="count-badge @(isFull ? "full" : isWarning ? "warning" : "")" data-count="@assignedSubject.SelectedCount">
+                                            <span class="count-value">@assignedSubject.SelectedCount</span>/@maxEnrollments
+                                        </span>
+
+                                        <form asp-action="SelectSubject" method="post" style="display: inline;">
+                                            <input type="hidden" name="assignedSubjectId" value="@assignedSubject.AssignedSubjectId" />
+                                            <button type="submit" class="action-btn @(isFull ? "full" : "")" @(isFull || Model.HasSelectedProfessionalElective2 ? "disabled" : "")>
+                                                @if (isFull)
+                                                {
+                                                    <text>FULL</text>
+                                                }
+                                                else if (Model.HasSelectedProfessionalElective2)
+                                                {
+                                                    <text>LOCKED</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>SELECT</text>
+                                                }
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @* PROFESSIONAL ELECTIVE-3 *@
+            @if (Model.ProfessionalElective3Subjects != null && Model.ProfessionalElective3Subjects.Any())
+            {
+                <div class="subject-section">
+                    <h3 class="section-title">Professional Elective-3</h3>
+                    <p class="section-subtitle">Select <strong>ONE</strong> subject</p>
+
+                    @if (Model.HasSelectedProfessionalElective3)
+                    {
+                        <div class="alert alert-info" style="margin-bottom: 20px;">
+                            <i class="fas fa-check-circle"></i> Already selected
+                        </div>
+                    }
+
+                    <div class="items-list">
+                        @foreach (var assignedSubject in Model.ProfessionalElective3Subjects)
+                        {
+                            var maxEnrollments = assignedSubject.Subject.MaxEnrollments ?? 70;
+                            var isFull = assignedSubject.SelectedCount >= maxEnrollments;
+                            var isWarning = assignedSubject.SelectedCount >= (maxEnrollments * 0.85);
+
+                            <div class="item-card @(isFull ? "full" : "")" data-assigned-subject-id="@assignedSubject.AssignedSubjectId">
+                                <div class="item-header">
+                                    <div style="flex: 1;">
+                                        <div class="item-name">@assignedSubject.Subject.Name</div>
+                                        <div class="item-faculty">@assignedSubject.Faculty.Name</div>
+                                    </div>
+
+                                    <div class="item-actions">
+                                        <span class="count-badge @(isFull ? "full" : isWarning ? "warning" : "")" data-count="@assignedSubject.SelectedCount">
+                                            <span class="count-value">@assignedSubject.SelectedCount</span>/@maxEnrollments
+                                        </span>
+
+                                        <form asp-action="SelectSubject" method="post" style="display: inline;">
+                                            <input type="hidden" name="assignedSubjectId" value="@assignedSubject.AssignedSubjectId" />
+                                            <button type="submit" class="action-btn @(isFull ? "full" : "")" @(isFull || Model.HasSelectedProfessionalElective3 ? "disabled" : "")>
+                                                @if (isFull)
+                                                {
+                                                    <text>FULL</text>
+                                                }
+                                                else if (Model.HasSelectedProfessionalElective3)
+                                                {
+                                                    <text>LOCKED</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>SELECT</text>
+                                                }
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (!Model.AvailableSubjectsGrouped.Any() && 
+             !(Model.ProfessionalElective1Subjects?.Any() ?? false) && 
+             !(Model.ProfessionalElective2Subjects?.Any() ?? false) && 
+             !(Model.ProfessionalElective3Subjects?.Any() ?? false))
         {
             <div class="no-subjects">
                 <div class="no-subjects-icon"><i class="fas fa-graduation-cap"></i></div>
@@ -676,7 +726,6 @@
             console.log('? SignalR reconnected!');
             statusElement.innerHTML = '<span class="status-dot connected"></span> Live Updates Active';
             statusElement.className = 'connection-status connected';
-            showNotification('Connection restored! Live updates active.', 'success');
         });
 
         connection.onclose((error) => {
@@ -688,157 +737,79 @@
         // REAL-TIME EVENT HANDLERS
         connection.on("SubjectSelectionUpdated", function (data) {
             console.log('?? Selection Update Received:', data);
-            console.log(`  - AssignedSubjectId: ${data.assignedSubjectId || data.AssignedSubjectId}`);
-            console.log(`  - NewCount: ${data.newCount || data.NewCount}`);
-            console.log(`  - IsFull: ${data.isFull || data.IsFull}`);
-            console.log(`  - Student: ${data.studentName || data.StudentName}`);
-            console.log(`  - Faculty: ${data.facultyName || data.FacultyName}`);
             
-            // Handle both camelCase and PascalCase property names
             const assignedSubjectId = data.assignedSubjectId || data.AssignedSubjectId;
             const newCount = data.newCount || data.NewCount;
             const isFull = data.isFull || data.IsFull;
-            const studentName = data.studentName || data.StudentName;
-            const facultyName = data.facultyName || data.FacultyName;
             
-            updateFacultyItem(assignedSubjectId, newCount, isFull);
-            showNotification(
-                `${studentName} enrolled with ${facultyName} (${newCount}/70)`,
-                isFull ? 'warning' : 'success'
-            );
+            updateItem(assignedSubjectId, newCount, isFull);
         });
 
         connection.on("SubjectUnenrollmentUpdated", function (data) {
             console.log('?? Unenrollment Update Received:', data);
-            console.log(`  - AssignedSubjectId: ${data.assignedSubjectId || data.AssignedSubjectId}`);
-            console.log(`  - NewCount: ${data.newCount || data.NewCount}`);
-            console.log(`  - Student: ${data.studentName || data.StudentName}`);
-            console.log(`  - Faculty: ${data.facultyName || data.FacultyName}`);
             
-            // Handle both camelCase and PascalCase property names
             const assignedSubjectId = data.assignedSubjectId || data.AssignedSubjectId;
             const newCount = data.newCount || data.NewCount;
-            const studentName = data.studentName || data.StudentName;
-            const facultyName = data.facultyName || data.FacultyName;
             
-            updateFacultyItem(assignedSubjectId, newCount, false);
-            showNotification(
-                `${studentName} unenrolled from ${facultyName} (${newCount}/70)`,
-                'success'
-            );
+            updateItem(assignedSubjectId, newCount, false);
         });
 
-        connection.on("SubjectAvailabilityChanged", function (data) {
-            console.log('?? Availability Change:', data);
-            showNotification(`${data.SubjectName} - ${data.Message}`, data.IsAvailable ? 'success' : 'warning');
-        });
-
-        // UPDATE FACULTY ITEM WITH ENHANCED LOGGING
-        function updateFacultyItem(assignedSubjectId, newCount, isFull) {
-            console.log(`?? Updating faculty item: ID=${assignedSubjectId}, Count=${newCount}, Full=${isFull}`);
+        // UPDATE ITEM
+        function updateItem(assignedSubjectId, newCount, isFull) {
+            console.log(`?? Updating item: ID=${assignedSubjectId}, Count=${newCount}, Full=${isFull}`);
             
-            // Find the faculty item by data attribute
             const item = document.querySelector(`[data-assigned-subject-id="${assignedSubjectId}"]`);
             if (!item) {
-                console.warn(`?? Faculty item not found for ID: ${assignedSubjectId}`);
-                console.log('Available items:', document.querySelectorAll('[data-assigned-subject-id]'));
+                console.warn(`?? Item not found for ID: ${assignedSubjectId}`);
                 return;
             }
 
-            console.log(`? Found faculty item for ID: ${assignedSubjectId}`, item);
-
-            // Find the count value element - it's inside the count-badge
             const countBadge = item.querySelector('.count-badge');
             const countValue = item.querySelector('.count-value');
-            const enrollBtn = item.querySelector('.enroll-btn');
-
-            console.log('Elements found:', { 
-                countBadge: !!countBadge, 
-                countValue: !!countValue, 
-                enrollBtn: !!enrollBtn 
-            });
+            const btn = item.querySelector('.action-btn');
 
             // Update count with animation
             if (countValue && countBadge) {
-                const oldCount = parseInt(countValue.textContent) || 0;
                 countValue.textContent = newCount;
-                console.log(`  ?? Updated count from ${oldCount} to ${newCount}`);
                 
-                // Add pulse animation with color change
-                countBadge.style.transform = 'scale(1.3)';
-                countBadge.style.transition = 'transform 0.3s ease, background-color 0.3s ease';
+                // Get max enrollments from the badge's data attribute
+                const maxEnrollments = parseInt(countBadge.getAttribute('data-max')) || 70;
                 
-                // Update badge styling based on count
+                // Update badge styling based on count relative to max
                 countBadge.classList.remove('full', 'warning');
-                if (isFull) {
+                if (isFull || newCount >= maxEnrollments) {
                     countBadge.classList.add('full');
-                    console.log(`  ?? Badge marked as FULL`);
-                } else if (newCount >= 60) {
+                } else if (newCount >= (maxEnrollments * 0.85)) {
                     countBadge.classList.add('warning');
-                    console.log(`  ?? Badge marked as WARNING`);
-                } else {
-                    console.log(`  ?? Badge marked as NORMAL`);
                 }
                 
+                // Add pulse animation
+                countBadge.style.transform = 'scale(1.3)';
+                countBadge.style.transition = 'transform 0.3s ease';
                 setTimeout(() => {
                     countBadge.style.transform = 'scale(1)';
                 }, 300);
-            } else {
-                console.warn(`  ?? Count elements not found. countValue: ${!!countValue}, countBadge: ${!!countBadge}`);
             }
 
             // Update button
-            if (enrollBtn) {
+            if (btn) {
                 if (isFull) {
-                    enrollBtn.disabled = true;
-                    enrollBtn.innerHTML = '<i class="fas fa-times"></i> <span>FULL</span>';
-                    console.log(`  ?? Button disabled (FULL)`);
+                    btn.disabled = true;
+                    btn.classList.add('full');
+                    btn.textContent = 'FULL';
                 } else {
-                    enrollBtn.disabled = false;
-                    enrollBtn.innerHTML = '<i class="fas fa-check"></i> <span>ENROLL</span>';
-                    console.log(`  ?? Button enabled`);
+                    btn.disabled = false;
+                    btn.classList.remove('full');
+                    const isElective = btn.closest('.subject-section').querySelector('.section-subtitle');
+                    btn.textContent = isElective ? 'SELECT' : 'ENROLL';
                 }
-            } else {
-                console.warn(`  ?? Enroll button not found`);
             }
 
             // Update item styling
             if (isFull) {
                 item.classList.add('full');
-                console.log(`  ?? Item marked as full`);
             } else {
                 item.classList.remove('full');
-                console.log(`  ?? Item marked as available`);
-            }
-            
-            console.log(`? Faculty item update complete for ID: ${assignedSubjectId}`);
-        }
-
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            
-            const icon = type === 'success' ? 'check-circle' : 
-                        type === 'warning' ? 'exclamation-triangle' : 
-                        type === 'error' ? 'times-circle' : 'info-circle';
-
-            notification.innerHTML = `
-                <span class="close-btn" onclick="this.parentElement.remove()">&times;</span>
-                <i class="fas fa-${icon}"></i> ${message}
-                <br><small>${new Date().toLocaleTimeString()}</small>
-            `;
-
-            container.appendChild(notification);
-
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 5000);
-
-            while (container.children.length > 5) {
-                container.removeChild(container.firstChild);
             }
         }
 
@@ -851,16 +822,6 @@
             if (connection.state === signalR.HubConnectionState.Connected) {
                 connection.stop();
             }
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('?? Page loaded, initializing SignalR...');
-            setTimeout(() => {
-                if (connection.state === signalR.HubConnectionState.Connected) {
-                    showNotification('Live enrollment updates are now active!', 'success');
-                    console.log('? SignalR ready for real-time updates');
-                }
-            }, 2000);
         });
     </script>
 </body>

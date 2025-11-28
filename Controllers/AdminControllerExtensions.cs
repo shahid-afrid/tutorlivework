@@ -43,8 +43,8 @@ namespace TutorLiveMentor.Controllers
 
                 AvailableSemesters = new List<SemesterOption>
                 {
-                    new SemesterOption { Value = "Odd", Text = "Odd Semester", NumericValue = 1 },
-                    new SemesterOption { Value = "Even", Text = "Even Semester", NumericValue = 2 }
+                    new SemesterOption { Value = "I", Text = "Semester I (1)", NumericValue = 1 },
+                    new SemesterOption { Value = "II", Text = "Semester II (2)", NumericValue = 2 }
                 },
 
                 AvailableSubjects = await _context.Subjects
@@ -121,8 +121,8 @@ namespace TutorLiveMentor.Controllers
                 AvailableYears = new List<int> { 1, 2, 3, 4 },
                 AvailableSemesters = new List<SemesterOption>
                 {
-                    new SemesterOption { Value = "Odd", Text = "Odd Semester", NumericValue = 1 },
-                    new SemesterOption { Value = "Even", Text = "Even Semester", NumericValue = 2 }
+                    new SemesterOption { Value = "I", Text = "Semester I (1)", NumericValue = 1 },
+                    new SemesterOption { Value = "II", Text = "Semester II (2)", NumericValue = 2 }
                 }
             };
 

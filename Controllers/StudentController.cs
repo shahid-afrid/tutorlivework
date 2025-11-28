@@ -313,6 +313,41 @@ namespace TutorLiveMentor.Controllers
                         return NotFound();
                     }
 
+                    // ? NEW: Check if this is a Professional Elective subject
+                    if (assignedSubject.Subject.SubjectType.StartsWith("ProfessionalElective"))
+                    {
+                        Console.WriteLine($"SelectSubject POST - Professional Elective detected: {assignedSubject.Subject.SubjectType}");
+                        
+                        // Check if student already enrolled in this elective type
+                        var existingElective = student.Enrollments?
+                            .FirstOrDefault(e => e.AssignedSubject.Subject.SubjectType == assignedSubject.Subject.SubjectType);
+                        
+                        if (existingElective != null)
+                        {
+                            Console.WriteLine($"SelectSubject POST - Student already enrolled in {assignedSubject.Subject.SubjectType}");
+                            await transaction.RollbackAsync();
+                            TempData["ErrorMessage"] = $"You have already selected a subject for {assignedSubject.Subject.SubjectType}. You can select only ONE subject from each Professional Elective group.";
+                            return RedirectToAction("SelectSubject");
+                        }
+                        
+                        // ? NEW: Check MaxEnrollments for Professional Electives
+                        if (assignedSubject.Subject.MaxEnrollments.HasValue)
+                        {
+                            var currentEnrollments = await _context.StudentEnrollments
+                                .CountAsync(e => e.AssignedSubjectId == assignedSubjectId);
+                            
+                            Console.WriteLine($"SelectSubject POST - Current enrollments: {currentEnrollments}, Max: {assignedSubject.Subject.MaxEnrollments.Value}");
+                            
+                            if (currentEnrollments >= assignedSubject.Subject.MaxEnrollments.Value)
+                            {
+                                Console.WriteLine("SelectSubject POST - Subject has reached maximum capacity");
+                                await transaction.RollbackAsync();
+                                TempData["ErrorMessage"] = $"This subject has reached its maximum capacity of {assignedSubject.Subject.MaxEnrollments.Value} students. Please select another subject.";
+                                return RedirectToAction("SelectSubject");
+                            }
+                        }
+                    }
+
                     // Check if student has already enrolled in this specific assigned subject (same faculty)
                     if (student.Enrollments.Any(e => e.AssignedSubjectId == assignedSubjectId))
                     {
@@ -322,8 +357,9 @@ namespace TutorLiveMentor.Controllers
                         return RedirectToAction("SelectSubject");
                     }
 
-                    // Check if student has already enrolled in this subject with any faculty
-                    if (student.Enrollments.Any(e => e.AssignedSubject.SubjectId == assignedSubject.SubjectId))
+                    // Check if student has already enrolled in this subject with any faculty (for core subjects)
+                    if (assignedSubject.Subject.SubjectType == "Core" && 
+                        student.Enrollments.Any(e => e.AssignedSubject.SubjectId == assignedSubject.SubjectId))
                     {
                         Console.WriteLine("SelectSubject POST - Already enrolled in this subject with another faculty");
                         await transaction.RollbackAsync();
@@ -338,7 +374,8 @@ namespace TutorLiveMentor.Controllers
 
                     Console.WriteLine($"SelectSubject POST - Current enrollment count: {currentCount}");
 
-                    if (currentCount >= 70)
+                    // For core subjects, check 70 limit
+                    if (assignedSubject.Subject.SubjectType == "Core" && currentCount >= 70)
                     {
                         Console.WriteLine("SelectSubject POST - Subject is full (70 students)");
                         await transaction.RollbackAsync();
@@ -375,7 +412,8 @@ namespace TutorLiveMentor.Controllers
                     await _signalRService.NotifySubjectSelection(assignedSubject, student);
 
                     // Check if subject is now full and notify availability change
-                    if (assignedSubject.SelectedCount >= 70)
+                    var maxLimit = assignedSubject.Subject.MaxEnrollments ?? 70;
+                    if (assignedSubject.SelectedCount >= maxLimit)
                     {
                         await _signalRService.NotifySubjectAvailability(
                             assignedSubject.Subject.Name, 
@@ -544,8 +582,7 @@ namespace TutorLiveMentor.Controllers
                    .Include(a => a.Subject)
                    .Include(a => a.Faculty)
                    .Where(a => a.Year == studentYear 
-                            && a.Department == student.Department  // ADDED: Department filter
-                            && a.SelectedCount < 70)
+                            && a.Department == student.Department)
                    .ToListAsync();
 
                 Console.WriteLine($"SelectSubject GET - Found {availableSubjects.Count} subjects for Year={studentYear}, Department={student.Department}");
@@ -557,13 +594,71 @@ namespace TutorLiveMentor.Controllers
                 Console.WriteLine($"SelectSubject GET - After filtering enrolled subjects: {availableSubjects.Count} subjects available");
             }
 
+            // ? NEW: Separate subjects by type
+            var coreSubjects = availableSubjects
+                .Where(s => s.Subject.SubjectType == "Core" && s.SelectedCount < 70)
+                .ToList();
+            
+            var professionalElective1 = availableSubjects
+                .Where(s => s.Subject.SubjectType == "ProfessionalElective1")
+                .ToList();
+            
+            var professionalElective2 = availableSubjects
+                .Where(s => s.Subject.SubjectType == "ProfessionalElective2")
+                .ToList();
+            
+            var professionalElective3 = availableSubjects
+                .Where(s => s.Subject.SubjectType == "ProfessionalElective3")
+                .ToList();
+
+            // ? NEW: Filter out full Professional Electives (check MaxEnrollments)
+            professionalElective1 = FilterByMaxEnrollments(professionalElective1);
+            professionalElective2 = FilterByMaxEnrollments(professionalElective2);
+            professionalElective3 = FilterByMaxEnrollments(professionalElective3);
+
+            // ? NEW: Check if student has already selected from each elective type
+            var studentEnrollments = student.Enrollments?.Select(e => e.AssignedSubject.Subject.SubjectType).ToList() ?? new List<string>();
+            
+            Console.WriteLine($"SelectSubject GET - Core: {coreSubjects.Count}, PE1: {professionalElective1.Count}, PE2: {professionalElective2.Count}, PE3: {professionalElective3.Count}");
+
             var viewModel = new StudentDashboardViewModel
             {
                 Student = student,
-                AvailableSubjectsGrouped = availableSubjects.GroupBy(s => s.Subject.Name)
+                AvailableSubjectsGrouped = coreSubjects.GroupBy(s => s.Subject.Name),
+                ProfessionalElective1Subjects = professionalElective1,
+                ProfessionalElective2Subjects = professionalElective2,
+                ProfessionalElective3Subjects = professionalElective3,
+                HasSelectedProfessionalElective1 = studentEnrollments.Contains("ProfessionalElective1"),
+                HasSelectedProfessionalElective2 = studentEnrollments.Contains("ProfessionalElective2"),
+                HasSelectedProfessionalElective3 = studentEnrollments.Contains("ProfessionalElective3")
             };
 
             return View(viewModel);
+        }
+
+        /// <summary>
+        /// Helper method to filter subjects by MaxEnrollments limit
+        /// </summary>
+        private List<AssignedSubject> FilterByMaxEnrollments(List<AssignedSubject> subjects)
+        {
+            var filtered = new List<AssignedSubject>();
+            foreach (var subject in subjects)
+            {
+                if (subject.Subject.MaxEnrollments.HasValue)
+                {
+                    // Check if subject has reached its limit
+                    if (subject.SelectedCount < subject.Subject.MaxEnrollments.Value)
+                    {
+                        filtered.Add(subject);
+                    }
+                }
+                else
+                {
+                    // No limit, add it
+                    filtered.Add(subject);
+                }
+            }
+            return filtered;
         }
 
         /*
@@ -910,5 +1005,15 @@ namespace TutorLiveMentor.Controllers
     {
         public Student Student { get; set; }
         public IEnumerable<IGrouping<string, AssignedSubject>> AvailableSubjectsGrouped { get; set; }
+        
+        // Professional Electives - each type displayed separately
+        public IEnumerable<AssignedSubject> ProfessionalElective1Subjects { get; set; }
+        public IEnumerable<AssignedSubject> ProfessionalElective2Subjects { get; set; }
+        public IEnumerable<AssignedSubject> ProfessionalElective3Subjects { get; set; }
+        
+        // Track which elective types student has already selected
+        public bool HasSelectedProfessionalElective1 { get; set; }
+        public bool HasSelectedProfessionalElective2 { get; set; }
+        public bool HasSelectedProfessionalElective3 { get; set; }
     }
 }

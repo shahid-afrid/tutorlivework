@@ -111,8 +111,8 @@ namespace TutorLiveMentor.Models
         public List<int> AvailableYears { get; set; } = new List<int> { 1, 2, 3, 4 };
         public List<SemesterOption> AvailableSemesters { get; set; } = new List<SemesterOption>
         {
-            new SemesterOption { Value = "I", Text = "1 (I)", NumericValue = 1 },
-            new SemesterOption { Value = "II", Text = "2 (II)", NumericValue = 2 }
+            new SemesterOption { Value = "I", Text = "Semester I (1)", NumericValue = 1 },
+            new SemesterOption { Value = "II", Text = "Semester II (2)", NumericValue = 2 }
         };
         
         // For editing purposes
@@ -142,6 +142,12 @@ namespace TutorLiveMentor.Models
 
         [Required(ErrorMessage = "Semester end date is required")]
         public DateTime? SemesterEndDate { get; set; }
+
+        // NEW: Subject Type - "Core", "OpenElective1", "OpenElective2", etc.
+        public string SubjectType { get; set; } = "Core";
+        
+        // NEW: Maximum enrollment limit (null = unlimited)
+        public int? MaxEnrollments { get; set; } = null;
     }
 
     /// <summary>
@@ -214,8 +220,8 @@ namespace TutorLiveMentor.Models
         public List<int> AvailableYears { get; set; } = new List<int> { 1, 2, 3, 4 };
         public List<SemesterOption> AvailableSemesters { get; set; } = new List<SemesterOption>
         {
-            new SemesterOption { Value = "I", Text = "1 (I)", NumericValue = 1 },
-            new SemesterOption { Value = "II", Text = "2 (II)", NumericValue = 2 }
+            new SemesterOption { Value = "I", Text = "Semester I (1)", NumericValue = 1 },
+            new SemesterOption { Value = "II", Text = "Semester II (2)", NumericValue = 2 }
         };
 
         // Report results
@@ -486,8 +492,8 @@ namespace TutorLiveMentor.Models
         public List<int> AvailableYears { get; set; } = new List<int> { 1, 2, 3, 4 };
         public List<SemesterOption> AvailableSemesters { get; set; } = new List<SemesterOption>
         {
-            new SemesterOption { Value = "I", Text = "1 (I)", NumericValue = 1 },
-            new SemesterOption { Value = "II", Text = "2 (II)", NumericValue = 2 }
+            new SemesterOption { Value = "I", Text = "Semester I (1)", NumericValue = 1 },
+            new SemesterOption { Value = "II", Text = "Semester II (2)", NumericValue = 2 }
         };
     }
 

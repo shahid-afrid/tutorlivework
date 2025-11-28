@@ -781,21 +781,61 @@
 
         async function handleEditSubmit(e) {
             e.preventDefault();
+            
+            const facultyId = parseInt(document.getElementById('editFacultyId').value);
+            const name = document.getElementById('editFacultyName').value.trim();
+            const email = document.getElementById('editFacultyEmail').value.trim();
+            const password = document.getElementById('editFacultyPassword').value;
+            
+            // Frontend validation
+            if (!facultyId || !name || !email) {
+                showAlert('Please fill in all required fields', 'danger');
+                return;
+            }
+            
+            // Ensure empty arrays are included
             const data = {
-                FacultyId: parseInt(document.getElementById('editFacultyId').value),
-                Name: document.getElementById('editFacultyName').value,
-                Email: document.getElementById('editFacultyEmail').value,
-                Password: document.getElementById('editFacultyPassword').value || null,
-                Department: 'CSEDS'
+                FacultyId: facultyId,
+                Name: name,
+                Email: email,
+                Password: password || '',  // Send empty string instead of null
+                Department: 'CSE(DS)',
+                SelectedSubjectIds: [],
+                AvailableSubjects: [],  // Add this
+                IsEdit: true  // Add this to indicate it's an edit operation
             };
+
+            console.log('Submitting faculty update:', JSON.stringify(data, null, 2));
 
             try {
                 const res = await fetch('@Url.Action("UpdateCSEDSFaculty", "Admin")', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify(data)
                 });
-                const result = await res.json();
+                
+                console.log('Response status:', res.status);
+                console.log('Response headers:', res.headers);
+                
+                // Try to read response as text first
+                const responseText = await res.text();
+                console.log('Raw response:', responseText);
+                
+                // Try to parse as JSON
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Failed to parse JSON:', parseError);
+                    showAlert('Server returned invalid response', 'danger');
+                    return;
+                }
+                
+                console.log('Parsed result:', result);
+                
                 if (result.success) {
                     showAlert('Faculty member updated successfully!', 'success');
                     closeEditModal();
@@ -805,7 +845,7 @@
                 }
             } catch (e) {
                 console.error('Update error:', e);
-                showAlert('Error updating faculty member!', 'danger');
+                showAlert('Error updating faculty member: ' + e.message, 'danger');
             }
         }
 

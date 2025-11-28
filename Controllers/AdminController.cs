@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using TutorLiveMentor.Models;
 using TutorLiveMentor.Services;
 using System.Linq;
-using OfficeOpenXml;
 using System.Text;
 
 namespace TutorLiveMentor.Controllers
@@ -721,25 +720,99 @@ namespace TutorLiveMentor.Controllers
             if (!IsCSEDSDepartment(department))
                 return Unauthorized();
 
+            // Log what we received
+            Console.WriteLine($"[UPDATE] Received model - FacultyId: {model.FacultyId}, Name: '{model.Name}', Email: '{model.Email}', Password: '{model.Password}', Department: '{model.Department}'");
+
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                // Get validation errors
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage).ToList() })
+                    .ToList();
 
-            var faculty = await _context.Faculties
-                .FirstOrDefaultAsync(f => f.FacultyId == model.FacultyId &&
-                                        (f.Department == "CSEDS" || f.Department == "CSE(DS)"));
+                Console.WriteLine($"[UPDATE] Model validation failed:");
+                foreach (var error in errors)
+                {
+                    Console.WriteLine($"  - {error.Field}: {string.Join(", ", error.Errors)}");
+                }
 
-            if (faculty == null)
-                return NotFound();
+                var errorMessage = string.Join("; ", errors.SelectMany(e => e.Errors));
+                return BadRequest(new { success = false, message = $"Validation errors: {errorMessage}" });
+            }
 
-            faculty.Name = model.Name;
-            faculty.Email = model.Email;
-            if (!string.IsNullOrEmpty(model.Password))
-                faculty.Password = model.Password;
+            try
+            {
+                Console.WriteLine($"[UPDATE] Starting update for FacultyId: {model.FacultyId}");
 
-            await _context.SaveChangesAsync();
-            await _signalRService.NotifyUserActivity(HttpContext.Session.GetString("AdminEmail") ?? "", "Admin", "Faculty Updated", $"CSEDS faculty member {faculty.Name} information updated");
+                // Query without tracking to avoid caching issues
+                var faculty = await _context.Faculties
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(f => f.FacultyId == model.FacultyId &&
+                                            (f.Department == "CSEDS" || f.Department == "CSE(DS)"));
 
-            return Ok(new { success = true, message = "Faculty updated successfully" });
+                if (faculty == null)
+                {
+                    Console.WriteLine($"[UPDATE] Faculty not found: {model.FacultyId}");
+                    return NotFound(new { success = false, message = "Faculty not found" });
+                }
+
+                Console.WriteLine($"[UPDATE] Found faculty - Current Name: {faculty.Name}, Current Email: {faculty.Email}");
+
+                // Check if email is being changed to an existing email
+                if (faculty.Email != model.Email)
+                {
+                    var emailExists = await _context.Faculties
+                        .AnyAsync(f => f.Email == model.Email && f.FacultyId != model.FacultyId);
+                    
+                    if (emailExists)
+                    {
+                        Console.WriteLine($"[UPDATE] Email already exists: {model.Email}");
+                        return BadRequest(new { success = false, message = "Email already exists for another faculty" });
+                    }
+                }
+
+                // Create a new instance with updated values
+                var updatedFaculty = new Faculty
+                {
+                    FacultyId = faculty.FacultyId,
+                    Name = model.Name,
+                    Email = model.Email,
+                    Password = !string.IsNullOrEmpty(model.Password) ? model.Password : faculty.Password,
+                    Department = faculty.Department
+                };
+
+                Console.WriteLine($"[UPDATE] Updating faculty with new values...");
+
+                // Use Update method to ensure EF tracks the entity
+                _context.Faculties.Update(updatedFaculty);
+
+                // Save changes
+                var changeCount = await _context.SaveChangesAsync();
+                Console.WriteLine($"[UPDATE] SaveChangesAsync returned: {changeCount} changes");
+
+                if (changeCount == 0)
+                {
+                    Console.WriteLine("[UPDATE] WARNING: No changes were saved to the database!");
+                    return BadRequest(new { success = false, message = "No changes were saved. Please try again." });
+                }
+
+                await _signalRService.NotifyUserActivity(
+                    HttpContext.Session.GetString("AdminEmail") ?? "", 
+                    "Admin", 
+                    "Faculty Updated", 
+                    $"CSE(DS) faculty member {updatedFaculty.Name} information updated"
+                );
+
+                Console.WriteLine("[UPDATE] Faculty updated successfully!");
+                return Ok(new { success = true, message = "Faculty updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UPDATE] Error: {ex.Message}");
+                Console.WriteLine($"[UPDATE] Stack Trace: {ex.StackTrace}");
+                return BadRequest(new { success = false, message = $"Error updating faculty: {ex.Message}" });
+            }
         }
 
         [HttpPost]
@@ -814,14 +887,35 @@ namespace TutorLiveMentor.Controllers
                 if (existingSubject != null)
                     return Json(new { success = false, message = "A subject with this name already exists for the selected year and semester" });
 
+                // Use MaxEnrollments from model (admin can set it manually for both Core and Open Electives)
+                // If not provided, set defaults:
+                // - Core: Year 2 = 60, Year 3/4 = 70
+                // - Open Electives: 70 (standard)
+                int? maxEnrollments = model.MaxEnrollments;
+                if (!maxEnrollments.HasValue)
+                {
+                    if (model.SubjectType == "Core")
+                    {
+                        // Default for Core subjects based on year
+                        maxEnrollments = model.Year == 2 ? 60 : 70;
+                    }
+                    else
+                    {
+                        // Default for Open Electives
+                        maxEnrollments = 70;
+                    }
+                }
+
                 var subject = new Subject
                 {
                     Name = model.Name,
-                    Department = "CSE(DS)",  // Changed from "CSEDS"
+                    Department = "CSE(DS)",
                     Year = model.Year,
                     Semester = model.Semester,
                     SemesterStartDate = model.SemesterStartDate,
-                    SemesterEndDate = model.SemesterEndDate
+                    SemesterEndDate = model.SemesterEndDate,
+                    SubjectType = model.SubjectType ?? "Core",
+                    MaxEnrollments = maxEnrollments
                 };
 
                 _context.Subjects.Add(subject);
@@ -831,7 +925,7 @@ namespace TutorLiveMentor.Controllers
                     HttpContext.Session.GetString("AdminEmail") ?? "",
                     "Admin",
                     "Subject Added",
-                    $"New CSE(DS) subject added: {subject.Name} (Year {subject.Year}, {subject.Semester})"
+                    $"New CSE(DS) subject added: {subject.Name} (Year {subject.Year}, {subject.Semester}, Type: {subject.SubjectType}, Max: {subject.MaxEnrollments ?? 0})"
                 );
 
                 return Json(new { success = true, message = "Subject added successfully" });
@@ -860,7 +954,7 @@ namespace TutorLiveMentor.Controllers
             {
                 var subject = await _context.Subjects
                     .FirstOrDefaultAsync(s => s.SubjectId == model.SubjectId &&
-                                            (s.Department == "CSEDS" || s.Department == "CSE(DS)"));
+                                            (s.Department == "CSEEDS" || s.Department == "CSE(DS)"));
 
                 if (subject == null)
                     return Json(new { success = false, message = "Subject not found" });
@@ -876,11 +970,28 @@ namespace TutorLiveMentor.Controllers
                 if (duplicateSubject != null)
                     return Json(new { success = false, message = "A subject with this name already exists for the selected year and semester" });
 
+                // Use MaxEnrollments from model (admin can customize it)
+                // If not provided, set defaults as fallback
+                int? maxEnrollments = model.MaxEnrollments;
+                if (!maxEnrollments.HasValue)
+                {
+                    if (model.SubjectType == "Core")
+                    {
+                        maxEnrollments = model.Year == 2 ? 60 : 70;
+                    }
+                    else
+                    {
+                        maxEnrollments = 70;
+                    }
+                }
+
                 subject.Name = model.Name;
                 subject.Year = model.Year;
                 subject.Semester = model.Semester;
                 subject.SemesterStartDate = model.SemesterStartDate;
                 subject.SemesterEndDate = model.SemesterEndDate;
+                subject.SubjectType = model.SubjectType ?? "Core";
+                subject.MaxEnrollments = maxEnrollments;
 
                 await _context.SaveChangesAsync();
 
@@ -888,7 +999,7 @@ namespace TutorLiveMentor.Controllers
                     HttpContext.Session.GetString("AdminEmail") ?? "",
                     "Admin",
                     "Subject Updated",
-                    $"CSEDS subject updated: {subject.Name} (Year {subject.Year}, {subject.Semester})"
+                    $"CSEDS subject updated: {subject.Name} (Year {subject.Year}, {subject.Semester}, Type: {subject.SubjectType}, Max: {subject.MaxEnrollments ?? 0})"
                 );
 
                 return Json(new { success = true, message = "Subject updated successfully" });
