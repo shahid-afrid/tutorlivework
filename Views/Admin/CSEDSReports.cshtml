@@ -453,6 +453,9 @@
                 <button type="button" class="glass-btn" onclick="debugExportIssue()" style="background: linear-gradient(135deg, #17a2b8, #138496);">
                     <i class="fas fa-bug"></i> Debug Export
                 </button>
+                <button type="button" class="glass-btn" onclick="testSession()" style="background: linear-gradient(135deg, #e83e8c, #dc3545);">
+                    <i class="fas fa-vial"></i> Test Session
+                </button>
                 <a href="@Url.Action("CSEDSDashboard", "Admin")" class="glass-btn btn-back">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
@@ -588,11 +591,19 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify(filters)
                 });
 
                 const result = await response.json();
                 console.log('Received result:', result);
+                
+                // Check for unauthorized/session issues
+                if (result.unauthorized) {
+                    alert('?? SESSION ERROR:\n\n' + result.message + '\n\nPlease refresh the page and log in again.');
+                    window.location.href = '@Url.Action("Login", "Admin")';
+                    return;
+                }
                 
                 if (result.success) {
                     currentReportData = result.data;
@@ -707,6 +718,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify(exportData)
                 });
 
@@ -787,6 +799,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify(exportData)
                 });
 
@@ -852,6 +865,47 @@
             }
 
             console.log('=== EXPORT DEBUG END ===');
+        }
+
+        async function testSession() {
+            console.log('=== SESSION TEST START ===');
+            
+            try {
+                const response = await fetch('@Url.Action("TestSession", "AdminReports")', {
+                    credentials: 'same-origin'
+                });
+                
+                const result = await response.json();
+                console.log('Session test result:', result);
+                
+                if (result.success) {
+                    const session = result.session;
+                    const message = `SESSION STATUS:\n\n` +
+                        `? Session Available: ${session.isAvailable}\n` +
+                        `? Admin ID: ${session.adminId || 'NOT SET'}\n` +
+                        `? Admin Email: ${session.adminEmail || 'NOT SET'}\n` +
+                        `? Admin Department: ${session.adminDepartment || 'NOT SET'}\n` +
+                        `? Is CSEDS: ${session.isCSEDS}\n` +
+                        `? Has Session Cookie: ${session.hasCookie}\n` +
+                        `? Session Keys: ${session.keys.join(', ')}\n` +
+                        `? All Cookies: ${session.allCookies.join(', ')}\n\n` +
+                        (session.adminId ? '? SESSION IS VALID!' : '? SESSION IS MISSING!');
+                    
+                    alert(message);
+                    
+                    if (!session.adminId) {
+                        alert('?? You need to log in again!\n\nRedirecting to login page...');
+                        window.location.href = '@Url.Action("Login", "Admin")';
+                    }
+                } else {
+                    alert('Session test failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Session test error:', error);
+                alert('Session test failed: ' + error.message);
+            }
+            
+            console.log('=== SESSION TEST END ===');
         }
 
         // Initialize page

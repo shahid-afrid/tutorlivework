@@ -27,7 +27,8 @@ namespace TutorLiveMentor.Controllers
             
             // Use DepartmentNormalizer to ensure consistent handling
             var normalized = DepartmentNormalizer.Normalize(department);
-            return normalized == "CSE(DS)";
+            // FIX: DepartmentNormalizer.Normalize() returns "CSEDS", not "CSE(DS)"
+            return normalized == "CSEDS";
         }
 
         /// <summary>
@@ -71,12 +72,31 @@ namespace TutorLiveMentor.Controllers
         [HttpPost]
         public async Task<IActionResult> GenerateCSEDSReport([FromBody] CSEDSReportsViewModel filters)
         {
+            // Debug logging
+            var adminId = HttpContext.Session.GetInt32("AdminId");
             var department = HttpContext.Session.GetString("AdminDepartment");
+            var adminEmail = HttpContext.Session.GetString("AdminEmail");
+            
+            Console.WriteLine($"[GenerateCSEDSReport] AdminId: {adminId}, Department: '{department}', Email: '{adminEmail}'");
+            Console.WriteLine($"[GenerateCSEDSReport] Session Available: {HttpContext.Session.IsAvailable}");
+            Console.WriteLine($"[GenerateCSEDSReport] Session Keys: {string.Join(", ", HttpContext.Session.Keys)}");
+            
+            if (adminId == null)
+            {
+                Console.WriteLine("[GenerateCSEDSReport] UNAUTHORIZED: Admin not logged in");
+                return Json(new { success = false, message = "Session expired. Please log in again.", unauthorized = true });
+            }
+            
             if (!IsCSEDSDepartment(department))
-                return Unauthorized();
+            {
+                Console.WriteLine($"[GenerateCSEDSReport] UNAUTHORIZED: Department '{department}' is not CSEDS");
+                return Json(new { success = false, message = $"Access denied. CSEDS department only. Your department: {department}", unauthorized = true });
+            }
 
             try
             {
+                Console.WriteLine("[GenerateCSEDSReport] Authorization passed, executing query...");
+                
                 // Start with base query for CSEDS enrollments
                 var query = _context.StudentEnrollments
                     .Include(se => se.Student)
@@ -146,33 +166,6 @@ namespace TutorLiveMentor.Controllers
                 }
 
                 Console.WriteLine($"Final query returned {results.Count} results");
-
-                // If no results found, let's return some debug information
-                if (results.Count == 0)
-                {
-                    // Get all available data for debugging
-                    var debugInfo = new
-                    {
-                        TotalStudents = await _context.Students.Where(s => s.Department == "CSEDS" || s.Department == "CSE(DS)").CountAsync(),
-                        TotalEnrollments = await _context.StudentEnrollments.Include(se => se.Student).Where(se => se.Student.Department == "CSEDS" || se.Student.Department == "CSE(DS)").CountAsync(),
-                        AvailableSubjects = await _context.Subjects.Where(s => s.Department == "CSEDS" || s.Department == "CSE(DS)").Select(s => new { s.SubjectId, s.Name, s.Year, s.Semester }).ToListAsync(),
-                        AvailableFaculty = await _context.Faculties.Where(f => f.Department == "CSEDS" || f.Department == "CSE(DS)").Select(f => new { f.FacultyId, f.Name }).ToListAsync(),
-                        AppliedFilters = new
-                        {
-                            filters.SelectedSubjectId,
-                            filters.SelectedFacultyId,
-                            filters.SelectedYear,
-                            filters.SelectedSemester
-                        }
-                    };
-
-                    return Json(new { 
-                        success = true, 
-                        data = results,
-                        debug = debugInfo,
-                        message = "No enrollments found with the selected criteria. Check the debug information." 
-                    });
-                }
 
                 return Json(new { success = true, data = results });
             }
@@ -1038,6 +1031,27 @@ namespace TutorLiveMentor.Controllers
                 Console.WriteLine($"PDF export error: {ex}");
                 return StatusCode(500, $"Error exporting to PDF: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Test session and authentication for debugging
+        /// </summary>
+        [HttpGet]
+        public IActionResult TestSession()
+        {
+            var sessionData = new
+            {
+                IsAvailable = HttpContext.Session.IsAvailable,
+                Keys = HttpContext.Session.Keys.ToList(),
+                AdminId = HttpContext.Session.GetInt32("AdminId"),
+                AdminEmail = HttpContext.Session.GetString("AdminEmail"),
+                AdminDepartment = HttpContext.Session.GetString("AdminDepartment"),
+                HasCookie = HttpContext.Request.Cookies.ContainsKey("TutorLiveMentor.Session"),
+                AllCookies = HttpContext.Request.Cookies.Keys.ToList(),
+                IsCSEDS = IsCSEDSDepartment(HttpContext.Session.GetString("AdminDepartment"))
+            };
+
+            return Json(new { success = true, session = sessionData });
         }
     }
 
