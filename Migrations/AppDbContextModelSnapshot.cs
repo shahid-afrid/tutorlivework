@@ -102,6 +102,273 @@ namespace TutorLiveMentor.Migrations
                     b.ToTable("AssignedSubjects");
                 });
 
+            modelBuilder.Entity("TutorLiveMentor.Models.AuditLog", b =>
+                {
+                    b.Property<int>("AuditLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AuditLogId"));
+
+                    b.Property<DateTime>("ActionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ActionDescription")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ActionPerformedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NewValue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OldValue")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("SuperAdminId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AuditLogId");
+
+                    b.HasIndex("SuperAdminId");
+
+                    b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("TutorLiveMentor.Models.Department", b =>
+                {
+                    b.Property<int>("DepartmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentId"));
+
+                    b.Property<bool>("AllowFacultyAssignment")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AllowStudentRegistration")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AllowSubjectSelection")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DepartmentCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalFaculty")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalStudents")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalSubjects")
+                        .HasColumnType("int");
+
+                    b.HasKey("DepartmentId");
+
+                    b.HasIndex("DepartmentCode")
+                        .IsUnique();
+
+                    b.ToTable("Departments");
+
+                    b.HasData(
+                        new
+                        {
+                            DepartmentId = 1,
+                            AllowFacultyAssignment = true,
+                            AllowStudentRegistration = true,
+                            AllowSubjectSelection = true,
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentCode = "CSEDS",
+                            DepartmentName = "Computer Science and Engineering (Data Science)",
+                            Description = "Department of Computer Science and Engineering with specialization in Data Science",
+                            IsActive = true,
+                            TotalFaculty = 0,
+                            TotalStudents = 0,
+                            TotalSubjects = 0
+                        },
+                        new
+                        {
+                            DepartmentId = 2,
+                            AllowFacultyAssignment = true,
+                            AllowStudentRegistration = true,
+                            AllowSubjectSelection = true,
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentCode = "CSE",
+                            DepartmentName = "Computer Science and Engineering",
+                            Description = "Department of Computer Science and Engineering",
+                            IsActive = true,
+                            TotalFaculty = 0,
+                            TotalStudents = 0,
+                            TotalSubjects = 0
+                        },
+                        new
+                        {
+                            DepartmentId = 3,
+                            AllowFacultyAssignment = true,
+                            AllowStudentRegistration = true,
+                            AllowSubjectSelection = true,
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentCode = "ECE",
+                            DepartmentName = "Electronics and Communication Engineering",
+                            Description = "Department of Electronics and Communication Engineering",
+                            IsActive = true,
+                            TotalFaculty = 0,
+                            TotalStudents = 0,
+                            TotalSubjects = 0
+                        },
+                        new
+                        {
+                            DepartmentId = 4,
+                            AllowFacultyAssignment = true,
+                            AllowStudentRegistration = true,
+                            AllowSubjectSelection = true,
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentCode = "MECH",
+                            DepartmentName = "Mechanical Engineering",
+                            Description = "Department of Mechanical Engineering",
+                            IsActive = true,
+                            TotalFaculty = 0,
+                            TotalStudents = 0,
+                            TotalSubjects = 0
+                        },
+                        new
+                        {
+                            DepartmentId = 5,
+                            AllowFacultyAssignment = true,
+                            AllowStudentRegistration = true,
+                            AllowSubjectSelection = true,
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentCode = "CIVIL",
+                            DepartmentName = "Civil Engineering",
+                            Description = "Department of Civil Engineering",
+                            IsActive = true,
+                            TotalFaculty = 0,
+                            TotalStudents = 0,
+                            TotalSubjects = 0
+                        },
+                        new
+                        {
+                            DepartmentId = 6,
+                            AllowFacultyAssignment = true,
+                            AllowStudentRegistration = true,
+                            AllowSubjectSelection = true,
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DepartmentCode = "EEE",
+                            DepartmentName = "Electrical and Electronics Engineering",
+                            Description = "Department of Electrical and Electronics Engineering",
+                            IsActive = true,
+                            TotalFaculty = 0,
+                            TotalStudents = 0,
+                            TotalSubjects = 0
+                        });
+                });
+
+            modelBuilder.Entity("TutorLiveMentor.Models.DepartmentAdmin", b =>
+                {
+                    b.Property<int>("DepartmentAdminId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentAdminId"));
+
+                    b.Property<int>("AdminId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("CanManageFaculty")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanManageSchedules")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanManageStudents")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanManageSubjects")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanViewReports")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DepartmentAdminId");
+
+                    b.HasIndex("AdminId");
+
+                    b.HasIndex("DepartmentId");
+
+                    b.ToTable("DepartmentAdmins");
+
+                    b.HasData(
+                        new
+                        {
+                            DepartmentAdminId = 1,
+                            AdminId = 1,
+                            AssignedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CanManageFaculty = true,
+                            CanManageSchedules = true,
+                            CanManageStudents = true,
+                            CanManageSubjects = true,
+                            CanViewReports = true,
+                            DepartmentId = 1
+                        });
+                });
+
             modelBuilder.Entity("TutorLiveMentor.Models.Faculty", b =>
                 {
                     b.Property<int>("FacultyId")
@@ -279,6 +546,117 @@ namespace TutorLiveMentor.Migrations
                     b.ToTable("Subjects");
                 });
 
+            modelBuilder.Entity("TutorLiveMentor.Models.SuperAdmin", b =>
+                {
+                    b.Property<int>("SuperAdminId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SuperAdminId"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastLogin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("SuperAdminId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("SuperAdmins");
+
+                    b.HasData(
+                        new
+                        {
+                            SuperAdminId = 1,
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "superadmin@rgmcet.edu.in",
+                            IsActive = true,
+                            Name = "System Administrator",
+                            Password = "Super@123",
+                            PhoneNumber = "9876543210",
+                            Role = "SuperAdmin"
+                        });
+                });
+
+            modelBuilder.Entity("TutorLiveMentor.Models.SystemConfiguration", b =>
+                {
+                    b.Property<int>("ConfigId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConfigId"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ConfigKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ConfigValue")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ModifiedBySuperAdminId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ConfigId");
+
+                    b.HasIndex("ConfigKey")
+                        .IsUnique();
+
+                    b.ToTable("SystemConfigurations");
+                });
+
             modelBuilder.Entity("TutorLiveMentor.Models.AssignedSubject", b =>
                 {
                     b.HasOne("TutorLiveMentor.Models.Faculty", "Faculty")
@@ -296,6 +674,35 @@ namespace TutorLiveMentor.Migrations
                     b.Navigation("Faculty");
 
                     b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("TutorLiveMentor.Models.AuditLog", b =>
+                {
+                    b.HasOne("TutorLiveMentor.Models.SuperAdmin", "SuperAdmin")
+                        .WithMany("AuditLogs")
+                        .HasForeignKey("SuperAdminId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("SuperAdmin");
+                });
+
+            modelBuilder.Entity("TutorLiveMentor.Models.DepartmentAdmin", b =>
+                {
+                    b.HasOne("TutorLiveMentor.Models.Admin", "Admin")
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TutorLiveMentor.Models.Department", "Department")
+                        .WithMany("DepartmentAdmins")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Admin");
+
+                    b.Navigation("Department");
                 });
 
             modelBuilder.Entity("TutorLiveMentor.Models.StudentEnrollment", b =>
@@ -322,6 +729,11 @@ namespace TutorLiveMentor.Migrations
                     b.Navigation("Enrollments");
                 });
 
+            modelBuilder.Entity("TutorLiveMentor.Models.Department", b =>
+                {
+                    b.Navigation("DepartmentAdmins");
+                });
+
             modelBuilder.Entity("TutorLiveMentor.Models.Faculty", b =>
                 {
                     b.Navigation("AssignedSubjects");
@@ -335,6 +747,11 @@ namespace TutorLiveMentor.Migrations
             modelBuilder.Entity("TutorLiveMentor.Models.Subject", b =>
                 {
                     b.Navigation("AssignedSubjects");
+                });
+
+            modelBuilder.Entity("TutorLiveMentor.Models.SuperAdmin", b =>
+                {
+                    b.Navigation("AuditLogs");
                 });
 #pragma warning restore 612, 618
         }

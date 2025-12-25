@@ -1,0 +1,1410 @@
+@model TutorLiveMentor.Models.SubjectAssignmentManagementViewModel
+@{
+    ViewData["Title"] = "Manage Subject Assignments";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TutorLiveMentor</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --royal-blue: #274060;
+            --warm-gold: #FFC857;
+            --cream: #F9FAF2;
+            --slate: #CED3DC;
+            --card-shadow: rgba(39,64,96,0.13);
+            --success-green: #28a745;
+            --error-red: #dc3545;
+            --cseds-purple: #6f42c1;
+            --cseds-teal: #20c997;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: linear-gradient(rgba(249, 250, 242, 0.15), rgba(255, 200, 87, 0.10)),
+            url('@Url.Content("~/images/RGMCET-BACKGROUND.jpg")') center center/cover no-repeat fixed;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            display: block;
+            background: linear-gradient(135deg, var(--cream) 60%, var(--warm-gold) 100%);
+            opacity: 0.20;
+            pointer-events: none;
+        }
+
+        /* Additional background consistency */
+        html {
+            background: linear-gradient(135deg, var(--cream) 60%, var(--warm-gold) 100%);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page-header {
+            background: rgb(249, 250, 242) !important;
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--slate);
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px var(--card-shadow);
+        }
+
+        .page-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-header-left {
+            flex: 1;
+        }
+
+        .page-header h1 {
+            color: var(--royal-blue);
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.8em;
+        }
+
+        .page-header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .page-header .breadcrumb {
+            background: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .page-header .breadcrumb-item a {
+            color: var(--@ViewBag.DepartmentName-purple);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .page-header .breadcrumb-item a:hover {
+            color: var(--@ViewBag.DepartmentName-teal);
+        }
+
+        .subjects-section {
+            background: rgb(249, 250, 242) !important;
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--slate);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px var(--card-shadow);
+            max-height: calc(100vh - 220px);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Multiple layer fix for complete background coverage */
+        .subjects-section::before {
+            content: "" !important;
+            position: absolute !important;
+            top: -10px !important;
+            left: -10px !important;
+            right: -10px !important;
+            bottom: -10px !important;
+            background: rgb(249, 250, 242) !important;
+            border-radius: 20px !important;
+            z-index: -2 !important;
+            pointer-events: none !important;
+        }
+
+        .subjects-section::after {
+            content: "" !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgb(249, 250, 242) !important;
+            border-radius: 18px !important;
+            z-index: -1 !important;
+            pointer-events: none !important;
+        }
+
+        /* Ensure content is above background */
+        .subjects-section > * {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        .subjects-section::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        .subjects-section::-webkit-scrollbar-track {
+            background: rgba(111, 66, 193, 0.1);
+            border-radius: 10px;
+        }
+
+        .subjects-section::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--cseds-purple), var(--cseds-teal));
+            border-radius: 10px;
+        }
+
+        .section-title {
+            color: var(--royal-blue);
+            font-weight: 700;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            position: sticky;
+            top: 0;
+            background: rgb(249, 250, 242) !important;
+            padding: 15px;
+            z-index: 10;
+            margin: -15px -15px 25px -15px;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .glass-btn {
+            background: linear-gradient(135deg, var(--cseds-purple) 0%, var(--cseds-teal) 100%);
+            color: white !important;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 20px var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .glass-btn:hover {
+            background: linear-gradient(135deg, var(--cseds-teal) 0%, var(--cseds-purple) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(111, 66, 193, 0.4);
+            color: white !important;
+        }
+
+        .btn {
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white !important;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529 !important;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white !important;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #545b62 100%);
+            transform: translateY(-2px);
+        }
+
+        .subject-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(111, 66, 193, 0.2);
+            border-color: var(--cseds-purple);
+        }
+
+        /* Ensure no background bleed through */
+        .subject-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            border-radius: 15px;
+            z-index: -1;
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .subject-info h4 {
+            color: var(--royal-blue);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .subject-badges {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .subject-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-year { 
+            background: #e3f2fd; 
+            color: #1976d2;
+            border: 1px solid #1976d2;
+        }
+        
+        .badge-semester { 
+            background: #f3e5f5; 
+            color: #7b1fa2;
+            border: 1px solid #7b1fa2;
+        }
+        
+        .badge-enrollments { 
+            background: #e8f5e8; 
+            color: #388e3c;
+            border: 1px solid #388e3c;
+        }
+        
+        .badge-status.active { 
+            background: #d4edda; 
+            color: #155724;
+            border: 1px solid #155724;
+        }
+        
+        .badge-status.inactive { 
+            background: #f8d7da; 
+            color: #721c24;
+            border: 1px solid #721c24;
+        }
+
+        .subject-details {
+            margin-bottom: 20px;
+            color: #666;
+            padding: 15px;
+            background: rgba(111, 66, 193, 0.03);
+            border-radius: 10px;
+        }
+
+        .faculty-assignments {
+            background: rgba(111, 66, 193, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgba(111, 66, 193, 0.2);
+        }
+
+        .faculty-assignments h6 {
+            color: var(--royal-blue);
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .faculty-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .faculty-item {
+            background: white;
+            border: 2px solid rgba(111, 66, 193, 0.2);
+            border-radius: 10px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .faculty-item:hover {
+            border-color: var(--cseds-purple);
+            box-shadow: 0 4px 12px rgba(111, 66, 193, 0.15);
+        }
+
+        .faculty-info {
+            flex: 1;
+        }
+
+        .faculty-name {
+            font-weight: 600;
+            color: var(--royal-blue);
+            margin-bottom: 2px;
+        }
+
+        .faculty-email {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .remove-faculty-btn {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .remove-faculty-btn:hover {
+            background: #dc3545;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .no-faculty {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            border: 2px dashed #ddd;
+        }
+
+        .assignment-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(111, 66, 193, 0.1);
+        }
+
+        /* Modal Styles - CUSTOM IMPLEMENTATION (Same as Faculty Page) */
+        .modal {
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            overflow: hidden !important;
+        }
+
+        .modal.show {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background-color: rgba(39, 64, 96, 0.75) !important;
+            backdrop-filter: blur(4px) !important;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-backdrop {
+            display: none !important;
+        }
+
+        .modal-dialog {
+            position: relative !important;
+            z-index: 10000 !important;
+            margin: 20px !important;
+            max-width: 800px !important;
+            width: 100% !important;
+            max-height: 90vh !important;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @@keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-dialog.modal-lg {
+            max-width: 920px !important;
+        }
+
+        .modal-content {
+            border-radius: 24px !important;
+            border: none !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+            background: white !important;
+            overflow: hidden !important;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--@ViewBag.DepartmentName-purple), var(--@ViewBag.DepartmentName-teal)) !important;
+            color: white !important;
+            border-radius: 0 !important;
+            padding: 25px 65px !important;
+            border-bottom: none !important;
+            position: relative !important;
+        }
+
+        .modal-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.3) 50%, 
+                rgba(255,255,255,0) 100%);
+        }
+
+        .modal-title {
+            font-weight: 700 !important;
+            font-size: 1.75rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            margin: 0 !important;
+        }
+
+        .modal-title i {
+            font-size: 1.5rem !important;
+            opacity: 0.9 !important;
+        }
+
+        .modal-header .btn-close {
+            display: none !important;
+        }
+
+        .modal-body {
+            padding: 40px 65px !important;
+            background: white !important;
+            max-height: calc(90vh - 200px) !important;
+            overflow-y: auto !important;
+        }
+
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb {
+            background: var(--@ViewBag.DepartmentName-purple);
+            border-radius: 10px;
+        }
+
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: var(--@ViewBag.DepartmentName-teal);
+        }
+
+        .modal-footer {
+            padding: 25px 65px !important;
+            background: #f8f9fa !important;
+            border-radius: 0 !important;
+            border-top: 1px solid #e9ecef !important;
+            display: flex !important;
+            gap: 12px !important;
+            justify-content: flex-end !important;
+        }
+
+        /* Enhanced Form Controls */
+        .form-label {
+            font-weight: 600 !important;
+            color: var(--royal-blue) !important;
+            margin-bottom: 12px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            font-size: 1.05rem !important;
+        }
+
+        .form-control {
+            border: 2px solid #e0e0e0 !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            font-size: 1rem !important;
+            transition: all 0.3s ease !important;
+            background: #f8f9fa !important;
+        }
+
+        .form-control:focus {
+            border-color: var(--@ViewBag.DepartmentName-purple) !important;
+            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.15) !important;
+            background: white !important;
+            outline: none !important;
+        }
+
+        .form-control:read-only {
+            background: #e9ecef !important;
+            color: #495057 !important;
+            cursor: not-allowed !important;
+        }
+
+        /* Faculty Selection Container */
+        .faculty-selection-container {
+            background: #f8f9fa !important;
+            border: 2px solid #e0e0e0 !important;
+            border-radius: 16px !important;
+            padding: 20px !important;
+            margin-top: 8px !important;
+        }
+
+        /* Search Box Styling */
+        .search-box {
+            position: relative !important;
+            margin-bottom: 20px !important;
+        }
+
+        .search-box i {
+            position: absolute !important;
+            left: 16px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            color: #6c757d !important;
+            font-size: 1.1rem !important;
+            z-index: 5 !important;
+        }
+
+        .search-box .form-control {
+            padding-left: 45px !important;
+            background: white !important;
+            border: 2px solid #dee2e6 !important;
+        }
+
+        .search-box .form-control:focus {
+            border-color: var(--cseds-teal) !important;
+            box-shadow: 0 0 0 0.2rem rgba(32, 201, 151, 0.15) !important;
+        }
+
+        /* Faculty Checkboxes Container */
+        .faculty-checkboxes {
+            max-height: 350px !important;
+            overflow-y: auto !important;
+            background: white !important;
+            border-radius: 12px !important;
+            padding: 12px !important;
+            margin-bottom: 16px !important;
+        }
+
+        .faculty-checkboxes::-webkit-scrollbar {
+            width: 8px !important;
+        }
+
+        .faculty-checkboxes::-webkit-scrollbar-track {
+            background: #f1f1f1 !important;
+            border-radius: 10px !important;
+        }
+
+        .faculty-checkboxes::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--cseds-purple), var(--cseds-teal)) !important;
+            border-radius: 10px !important;
+        }
+
+        .faculty-checkboxes::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--cseds-teal), var(--cseds-purple)) !important;
+        }
+
+        /* Faculty Checkbox Item */
+        .faculty-checkbox-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 14px 16px !important;
+            margin-bottom: 8px !important;
+            background: #f8f9fa !important;
+            border: 2px solid transparent !important;
+            border-radius: 12px !important;
+            transition: all 0.3s ease !important;
+            cursor: pointer !important;
+        }
+
+        .faculty-checkbox-item:hover {
+            background: white !important;
+            border-color: var(--cseds-purple) !important;
+            box-shadow: 0 4px 12px rgba(111, 66, 193, 0.1) !important;
+            transform: translateX(4px) !important;
+        }
+
+        .faculty-checkbox-item.hidden {
+            display: none !important;
+        }
+
+        .faculty-checkbox-item .form-check-input {
+            width: 22px !important;
+            height: 22px !important;
+            margin-right: 14px !important;
+            border: 2px solid #ced4da !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            flex-shrink: 0 !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .faculty-checkbox-item .form-check-input:checked {
+            background: linear-gradient(135deg, var(--cseds-purple), var(--cseds-teal)) !important;
+            border-color: var(--cseds-purple) !important;
+            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.15) !important;
+        }
+
+        .faculty-checkbox-item .form-check-input:focus {
+            box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25) !important;
+            border-color: var(--@ViewBag.DepartmentName-purple) !important;
+        }
+
+        .faculty-checkbox-item .form-check-label {
+            cursor: pointer !important;
+            flex: 1 !important;
+            margin: 0 !important;
+        }
+
+        .faculty-checkbox-info {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 4px !important;
+        }
+
+        .faculty-checkbox-name {
+            font-weight: 600 !important;
+            color: var(--royal-blue) !important;
+            font-size: 1rem !important;
+            line-height: 1.4 !important;
+        }
+
+        .faculty-checkbox-email {
+            font-size: 0.9rem !important;
+            color: #6c757d !important;
+            line-height: 1.3 !important;
+        }
+
+        /* Selection Summary */
+        .selection-summary {
+            background: linear-gradient(135deg, rgba(111, 66, 193, 0.1), rgba(32, 201, 151, 0.1)) !important;
+            border: 2px solid rgba(111, 66, 193, 0.3) !important;
+            border-radius: 12px !important;
+            padding: 14px 18px !important;
+            text-align: center !important;
+            font-weight: 600 !important;
+            color: var(--royal-blue) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            font-size: 1.05rem !important;
+        }
+
+        .selection-summary i {
+            color: var(--@ViewBag.DepartmentName-teal) !important;
+            font-size: 1.2rem !important;
+        }
+
+        /* Alert Styling in Modal */
+        .modal-body .alert {
+            border-radius: 12px !important;
+            border: none !important;
+            padding: 16px 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            font-size: 0.95rem !important;
+        }
+
+        .modal-body .alert-warning {
+            background: #fff3cd !important;
+            color: #856404 !important;
+            border-left: 4px solid #ffc107 !important;
+        }
+
+        .modal-body .alert-warning i {
+            font-size: 1.3rem !important;
+            color: #ffc107 !important;
+        }
+
+        .modal-body .alert-info {
+            background: #d1ecf1 !important;
+            color: #0c5460 !important;
+            border-left: 4px solid #17a2b8 !important;
+        }
+
+        .modal-body .alert-info i {
+            font-size: 1.3rem !important;
+            color: #17a2b8 !important;
+        }
+
+        /* Subject Details Modal Content */
+        #subjectDetailsContent {
+            padding: 0 !important;
+        }
+
+        #subjectDetailsContent .alert {
+            margin: 0 !important;
+        }
+
+        #subjectDetailsContent h6 {
+            font-weight: 700 !important;
+            color: var(--royal-blue) !important;
+            margin-bottom: 16px !important;
+            font-size: 1.2rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+
+        #subjectDetailsContent p {
+            margin-bottom: 12px !important;
+            line-height: 1.6 !important;
+        }
+
+        #subjectDetailsContent hr {
+            margin: 20px 0 !important;
+            border-top: 2px solid rgba(111, 66, 193, 0.2) !important;
+        }
+
+        /* Modal Footer Buttons */
+        .modal-footer .btn {
+            min-width: 120px !important;
+            padding: 12px 24px !important;
+            font-size: 1rem !important;
+        }
+
+        .modal-footer .glass-btn {
+            padding: 12px 28px !important;
+        }
+
+        /* Responsive Modal Adjustments */
+        @@media (max-width: 768px) {
+            .modal-dialog {
+                margin: 10px !important;
+                max-width: calc(100% - 20px) !important;
+            }
+
+            .modal-header,
+            .modal-body,
+            .modal-footer {
+                padding-left: 25px !important;
+                padding-right: 25px !important;
+            }
+
+            .modal-title {
+                font-size: 1.4rem !important;
+            }
+
+            .faculty-checkboxes {
+                max-height: 250px !important;
+            }
+
+            .modal-footer {
+                flex-direction: column !important;
+            }
+
+            .modal-footer .btn,
+            .modal-footer .glass-btn {
+                width: 100% !important;
+            }
+
+            /* Responsive Header */
+            .page-header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .page-header-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .page-header h1 {
+                font-size: 1.4em;
+            }
+        }
+    
+        /* App Footer Styling */
+        .app-footer {
+            background: rgba(249,250,242,0.95);
+            backdrop-filter: blur(12px);
+            border-top: 3px solid var(--slate, #CED3DC);
+            box-shadow: 0 -8px 32px rgba(39,64,96,0.13);
+            padding: 30px 20px;
+            margin-top: 50px;
+            text-align: center;
+            font-family: 'Montserrat', Arial, sans-serif;
+            color: #274060;
+            position: relative;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-line {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .footer-line.guidance { font-size: 1em; font-weight: 600; color: #444;
+            margin-bottom: 12px;
+        }
+
+        .footer-line.team {
+            font-size: 0.95em;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .footer-line.copyright {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #274060;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(39,64,96,0.1);
+        }
+
+        .footer-highlight { color: #274060;
+            font-weight: 700;
+        }
+
+        .footer-name { color: #274060;
+            font-weight: 600;
+        }
+
+        @@media (max-width: 768px) {
+            .app-footer {
+                padding: 20px 15px;
+                margin-top: 30px;
+            }
+
+            .footer-line.guidance {
+                font-size: 0.9em;
+            }
+
+            .footer-line.team {
+                font-size: 0.85em;
+            }
+
+            .footer-line.copyright {
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-content">
+                <div class="page-header-left">
+                    <h1>
+                        <i class="fas fa-link"></i>
+                        @ViewBag.DepartmentName Faculty-Subject Assignments
+                    </h1>
+                </div>
+                <div class="page-header-actions">
+                    <a href="@Url.Action("DynamicDashboard", "Admin", new { department = ViewBag.DepartmentCode })" class="glass-btn">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subjects Assignment Section -->
+        <div class="subjects-section">
+            <div class="section-title">
+                <h3><i class="fas fa-link"></i> Subject Assignments</h3>
+                <div class="title-actions">
+                    <a href="@Url.Action("ManageDynamicSubjects", "Admin", new { department = ViewBag.DepartmentCode })" class="glass-btn">
+                        <i class="fas fa-book"></i> Manage Subjects
+                    </a>
+                    <a href="@Url.Action("ManageDynamicFaculty", "Admin", new { department = ViewBag.DepartmentCode })" class="glass-btn">
+                        <i class="fas fa-users"></i> Manage Faculty
+                    </a>
+                </div>
+            </div>
+
+            <!-- Subject Cards -->
+            @foreach (var subject in Model.SubjectsWithAssignments)
+            {
+                <div class="subject-card">
+                    <!-- Subject Header -->
+                    <div class="subject-header">
+                        <div class="subject-info">
+                            <h4>@subject.Name</h4>
+                            <div class="subject-badges">
+                                <span class="subject-badge badge-year"><i class="fas fa-graduation-cap"></i> Year @subject.Year</span>
+                                <span class="subject-badge badge-semester"><i class="fas fa-calendar-alt"></i> @subject.Semester</span>
+                                <span class="subject-badge badge-enrollments"><i class="fas fa-users"></i> @subject.TotalEnrollments Students</span>
+                                <span class="subject-badge badge-status @(subject.IsActive ? "active" : "inactive")">
+                                    <i class="fas fa-circle"></i> @(subject.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subject Details -->
+                    <div class="subject-details">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-building"></i> Department:</strong> @subject.Department
+                            </div>
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-calendar-check"></i> Semester Period:</strong> 
+                                @if (subject.SemesterStartDate.HasValue && subject.SemesterEndDate.HasValue)
+                                {
+                                    <span>@subject.SemesterStartDate.Value.ToString("MMM dd, yyyy") - @subject.SemesterEndDate.Value.ToString("MMM dd, yyyy")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not specified</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Faculty Assignments -->
+                    <div class="faculty-assignments">
+                        <h6>
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            Assigned Faculty (@subject.AssignedFaculty.Count)
+                        </h6>
+                        
+                        @if (subject.AssignedFaculty.Any())
+                        {
+                            <div class="faculty-list">
+                                @foreach (var faculty in subject.AssignedFaculty)
+                                {
+                                    <div class="faculty-item">
+                                        <div class="faculty-info">
+                                            <div class="faculty-name"><i class="fas fa-user"></i> @faculty.Name</div>
+                                            <div class="faculty-email"><i class="fas fa-envelope"></i> @faculty.Email</div>
+                                        </div>
+                                        <button type="button" class="remove-faculty-btn" 
+                                                onclick="RemoveDynamicFacultyAssignment(@faculty.AssignedSubjectId, '@Html.Raw(faculty.Name.Replace("'", "\\'"))', '@Html.Raw(subject.Name.Replace("'", "\\'"))')"
+                                                title="Remove assignment">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="no-faculty">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <p>No faculty assigned to this subject</p>
+                            </div>
+                        }
+
+                        <!-- Assignment Controls -->
+                        <div class="assignment-controls">
+                            <button type="button" class="btn btn-info" 
+                                    onclick="openAssignModal(@subject.SubjectId, '@Html.Raw(subject.Name.Replace("'", "\\'"))')">
+                                <i class="fas fa-plus-circle"></i> Assign Faculty
+                            </button>
+                            <button type="button" class="btn btn-warning" 
+                                    onclick="viewSubjectDetails(@subject.SubjectId, '@Html.Raw(subject.Name.Replace("'", "\\'"))')">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (!Model.SubjectsWithAssignments.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>No subjects found</strong> in the @ViewBag.DepartmentName department. 
+                    <a href="@Url.Action("ManageDynamicSubjects", "Admin", new { department = ViewBag.DepartmentCode })" class="alert-link">Add some subjects</a> to get started.
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Assign Faculty Modal -->
+    <div class="modal" id="assignFacultyModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignFacultyModalLabel">
+                        <i class="fas fa-link"></i> Assign Faculty to Subject
+                    </h5>
+                </div>
+                <form id="assignFacultyForm">
+                    <input type="hidden" id="assignSubjectId">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="subjectName" class="form-label"><i class="fas fa-book"></i> Subject</label>
+                            <input type="text" class="form-control" id="subjectName" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-users-cog"></i> Select Faculty Members</label>
+                            <div class="faculty-selection-container">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" id="facultySearch" 
+                                           placeholder="Search faculty by name or email...">
+                                </div>
+                                <div class="faculty-checkboxes" id="facultyCheckboxList">
+                                    @foreach (var faculty in Model.AvailableFaculty)
+                                    {
+                                        <div class="faculty-checkbox-item" data-faculty-name="@faculty.Name.ToLower()" data-faculty-email="@faculty.Email.ToLower()">
+                                            <input class="form-check-input" type="checkbox" value="@faculty.FacultyId" 
+                                                   id="faculty_@faculty.FacultyId" name="selectedFaculty">
+                                            <label class="form-check-label" for="faculty_@faculty.FacultyId">
+                                                <div class="faculty-checkbox-info">
+                                                    <div class="faculty-checkbox-name">@faculty.Name</div>
+                                                    <div class="faculty-checkbox-email">@faculty.Email</div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="selection-summary">
+                                    <i class="fas fa-check-circle"></i> <span id="selectedCount">0</span> faculty member(s) selected
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Note:</strong> Assigning new faculty will replace all current assignments for this subject.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeAssignModal()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="glass-btn">
+                            <i class="fas fa-save"></i> Assign Faculty
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subject Details Modal -->
+    <div class="modal" id="subjectDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="subjectDetailsModalLabel">
+                        <i class="fas fa-info-circle"></i> Subject Details
+                    </h5>
+                </div>
+                <div class="modal-body" id="subjectDetailsContent">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeDetailsModal()">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        console.log('=== Subject Assignment Page Loading ===');
+        const departmentCode = '@ViewBag.DepartmentCode';
+
+        // Utility function to show alerts
+        function showAlert(msg, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alert.style.cssText = 'top: 20px; right: 20px; z-index: 99999; min-width: 300px;';
+            alert.innerHTML = `
+                <strong>${type === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-circle"></i>'}</strong> ${msg}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 4000);
+        }
+
+        // Open Assign Faculty Modal
+        function openAssignModal(subjectId, subjectName) {
+            console.log('Opening Assign Modal:', subjectId, subjectName);
+            
+            document.getElementById('assignSubjectId').value = subjectId;
+            document.getElementById('subjectName').value = subjectName;
+            
+            // Clear all checkboxes
+            document.querySelectorAll('input[name="selectedFaculty"]').forEach(cb => cb.checked = false);
+            updateSelectedCount();
+            
+            // Clear search
+            const searchInput = document.getElementById('facultySearch');
+            if (searchInput) searchInput.value = '';
+            
+            // Show all faculty items
+            document.querySelectorAll('.faculty-checkbox-item').forEach(item => item.classList.remove('hidden'));
+            
+            // Show modal
+            document.getElementById('assignFacultyModal').classList.add('show');
+        }
+
+        // Close Assign Modal
+        function closeAssignModal() {
+            document.getElementById('assignFacultyModal').classList.remove('show');
+        }
+
+        // View Subject Details
+        function viewSubjectDetails(subjectId, subjectName) {
+            console.log('Opening Details Modal:', subjectId, subjectName);
+            
+            document.getElementById('subjectDetailsModalLabel').innerHTML = 
+                `<i class="fas fa-info-circle"></i> ${subjectName} - Details`;
+            
+            document.getElementById('subjectDetailsContent').innerHTML = `
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-book"></i> Subject Information</h6>
+                    <p><strong>Subject:</strong> ${subjectName}</p>
+                    <p><strong>Subject ID:</strong> ${subjectId}</p>
+                    <hr>
+                    <p class="mb-0"><i class="fas fa-info-circle"></i> Detailed enrollment and assignment information will be available here.</p>
+                </div>
+            `;
+            
+            document.getElementById('subjectDetailsModal').classList.add('show');
+        }
+
+        // Close Details Modal
+        function closeDetailsModal() {
+            document.getElementById('subjectDetailsModal').classList.remove('show');
+        }
+
+        // Update selected count
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('input[name="selectedFaculty"]:checked').length;
+            document.getElementById('selectedCount').textContent = count;
+        }
+
+        // Form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page initialized');
+            
+            // Setup checkbox change listener
+            document.querySelectorAll('input[name="selectedFaculty"]').forEach(cb => {
+                cb.addEventListener('change', updateSelectedCount);
+            });
+            
+            // Setup faculty search
+            const searchInput = document.getElementById('facultySearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    document.querySelectorAll('.faculty-checkbox-item').forEach(item => {
+                        const name = item.getAttribute('data-faculty-name');
+                        const email = item.getAttribute('data-faculty-email');
+                        
+                        if (name.includes(searchTerm) || email.includes(searchTerm)) {
+                            item.classList.remove('hidden');
+                        } else {
+                            item.classList.add('hidden');
+                        }
+                    });
+                });
+            }
+            
+            // Setup form submit
+            const form = document.getElementById('assignFacultyForm');
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const selectedFaculty = Array.from(document.querySelectorAll('input[name="selectedFaculty"]:checked'))
+                        .map(cb => parseInt(cb.value));
+
+                    if (selectedFaculty.length === 0) {
+                        showAlert('Please select at least one faculty member', 'warning');
+                        return;
+                    }
+
+                    const formData = {
+                        SubjectId: parseInt(document.getElementById('assignSubjectId').value),
+                        FacultyIds: selectedFaculty
+                    };
+
+                    console.log('Submitting:', formData);
+
+                    try {
+                        const response = await fetch(`@Url.Action("AssignDynamicFacultyToSubject", "Admin")?department=${departmentCode}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showAlert('Faculty assigned successfully!', 'success');
+                            closeAssignModal();
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            showAlert('Error: ' + (result.message || 'Unknown error'), 'danger');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showAlert('Error assigning faculty. Please try again.', 'danger');
+                    }
+                });
+            }
+            
+            // Close modals when clicking outside
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal') && e.target.classList.contains('show')) {
+                    e.target.classList.remove('show');
+                }
+            });
+        });
+
+        // Remove Faculty Assignment
+        async function RemoveDynamicFacultyAssignment(assignedSubjectId, facultyName, subjectName) {
+            if (!confirm(`Are you sure you want to remove "${facultyName}" from "${subjectName}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`@Url.Action("RemoveDynamicFacultyAssignment", "Admin")?department=${departmentCode}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ AssignedSubjectId: assignedSubjectId })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Faculty assignment removed successfully!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showAlert('Error: ' + (result.message || 'Unknown error'), 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error removing assignment. Please try again.', 'danger');
+            }
+        }
+
+        console.log('=== Subject Assignment Page Ready ===');
+    </script>
+
+    <footer class="app-footer">
+        <div class="footer-content">
+            <div class="footer-line guidance">
+                Developed under the guidance of <span class="footer-highlight">Dr. P. Penchala Prasad</span>, Associate Professor, @ViewBag.DepartmentName, RGMCET
+            </div>
+            <div class="footer-line team">
+                With team <span class="footer-name">Mr. S. Md. Shahid Afrid</span> (23091A32D4) & <span class="footer-name">Ms. G. Veena</span> (23091A32H9)
+            </div>
+            <div class="footer-line copyright">
+                &copy; All Rights Reserved @@2025
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+

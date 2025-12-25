@@ -1,0 +1,353 @@
+@model TutorLiveMentor.Models.DepartmentDetailViewModel
+@{
+    ViewData["Title"] = "Edit Department";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TutorLiveMentor</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --royal-blue: #274060;
+            --warm-gold: #FFC857;
+            --cream: #F9FAF2;
+            --slate: #CED3DC;
+            --super-admin-red: #dc3545;
+            --super-admin-gold: #ffc107;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: linear-gradient(rgba(249, 250, 242, 0.15), rgba(255, 200, 87, 0.10)),
+            url('@Url.Content("~/images/RGMCET-BACKGROUND.jpg")') center center/cover no-repeat fixed;
+            padding: 20px;
+        }
+
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--super-admin-red), var(--super-admin-gold));
+            border-radius: 25px;
+            padding: 30px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 50px rgba(220, 53, 69, 0.3);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 2em;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.25);
+            color: white !important;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 12px 24px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-card {
+            background: rgb(249, 250, 242);
+            border: 2px solid var(--slate);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(39, 64, 96, 0.13);
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--royal-blue);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid rgba(220, 53, 69, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--royal-blue);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-control {
+            border: 2px solid var(--slate);
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--super-admin-red);
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+        .form-check {
+            padding: 15px;
+            background: rgba(111, 66, 193, 0.05);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+
+        .form-check-label {
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--super-admin-red), var(--super-admin-gold));
+            border: none;
+            border-radius: 20px;
+            padding: 15px 40px;
+            font-weight: 700;
+            font-size: 1.1em;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--super-admin-gold), var(--super-admin-red));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            border-radius: 20px;
+            padding: 15px 40px;
+            font-weight: 700;
+            font-size: 1.1em;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .text-danger {
+            color: #dc3545;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .help-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .required-star {
+            color: #dc3545;
+            margin-left: 3px;
+        }
+
+        .info-badge {
+            background: rgba(111, 66, 193, 0.1);
+            border: 1px solid rgba(111, 66, 193, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-badge strong {
+            color: #6f42c1;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-edit"></i>
+                Edit Department
+            </h1>
+            <a href="@Url.Action("ManageDepartments", "SuperAdmin")" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <div class="form-card">
+            <div class="info-badge">
+                <i class="fas fa-info-circle" style="color: #6f42c1;"></i>
+                <strong>Editing:</strong> @Model.DepartmentName (@Model.DepartmentCode)
+            </div>
+
+            <form asp-action="EditDepartment" asp-controller="SuperAdmin" method="post">
+                <input type="hidden" asp-for="DepartmentId" />
+                
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Basic Information
+                    </h3>
+
+                    <div class="form-group">
+                        <label asp-for="DepartmentName" class="form-label">
+                            <i class="fas fa-building"></i> Department Name<span class="required-star">*</span>
+                        </label>
+                        <input asp-for="DepartmentName" class="form-control" required />
+                        <span asp-validation-for="DepartmentName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="DepartmentCode" class="form-label">
+                            <i class="fas fa-code"></i> Department Code<span class="required-star">*</span>
+                        </label>
+                        <input asp-for="DepartmentCode" class="form-control" required style="text-transform: uppercase;" />
+                        <span asp-validation-for="DepartmentCode" class="text-danger"></span>
+                        <div class="help-text">Warning: Changing this may affect existing data</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Description" class="form-label">
+                            <i class="fas fa-align-left"></i> Description
+                        </label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-cog"></i>
+                        Configuration
+                    </h3>
+
+                    <div class="form-check">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsActive" class="form-check-label">
+                            <strong>Department is Active</strong>
+                            <div class="help-text">If unchecked, department will be hidden from system</div>
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="AllowStudentRegistration" class="form-check-input" type="checkbox" />
+                        <label asp-for="AllowStudentRegistration" class="form-check-label">
+                            <strong>Allow Student Registration</strong>
+                            <div class="help-text">Students can register for this department</div>
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="AllowFacultyAssignment" class="form-check-input" type="checkbox" />
+                        <label asp-for="AllowFacultyAssignment" class="form-check-label">
+                            <strong>Allow Faculty Assignment</strong>
+                            <div class="help-text">Faculty can be assigned to subjects in this department</div>
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input asp-for="AllowSubjectSelection" class="form-check-input" type="checkbox" />
+                        <label asp-for="AllowSubjectSelection" class="form-check-label">
+                            <strong>Allow Subject Selection</strong>
+                            <div class="help-text">Students can select subjects from this department</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Statistics
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="background: rgba(111, 66, 193, 0.1); padding: 15px; border-radius: 12px;">
+                            <div style="font-size: 0.85em; color: #666;">Total Students</div>
+                            <div style="font-size: 2em; font-weight: 700; color: #6f42c1;">@Model.TotalStudents</div>
+                        </div>
+                        <div style="background: rgba(32, 201, 151, 0.1); padding: 15px; border-radius: 12px;">
+                            <div style="font-size: 0.85em; color: #666;">Total Faculty</div>
+                            <div style="font-size: 2em; font-weight: 700; color: #20c997;">@Model.TotalFaculty</div>
+                        </div>
+                        <div style="background: rgba(255, 193, 7, 0.1); padding: 15px; border-radius: 12px;">
+                            <div style="font-size: 0.85em; color: #666;">Total Subjects</div>
+                            <div style="font-size: 2em; font-weight: 700; color: #ffc107;">@Model.TotalSubjects</div>
+                        </div>
+                        <div style="background: rgba(220, 53, 69, 0.1); padding: 15px; border-radius: 12px;">
+                            <div style="font-size: 0.85em; color: #666;">Department Admins</div>
+                            <div style="font-size: 2em; font-weight: 700; color: #dc3545;">@Model.TotalAdmins</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Update Department
+                    </button>
+                    <a href="@Url.Action("ManageDepartments", "SuperAdmin")" class="btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script>
+        // Auto-uppercase department code
+        document.querySelector('input[name="DepartmentCode"]').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+        });
+
+        console.log('Edit Department Form Loaded');
+        console.log('Department ID:', @Model.DepartmentId);
+    </script>
+</body>
+</html>

@@ -10,6 +10,7 @@ namespace TutorLiveMentor.Models
         {
         }
 
+        // Existing DbSets
         public DbSet<Student> Students { get; set; }
         public DbSet<Faculty> Faculties { get; set; }
         public DbSet<Subject> Subjects { get; set; }
@@ -17,6 +18,13 @@ namespace TutorLiveMentor.Models
         public DbSet<StudentEnrollment> StudentEnrollments { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<FacultySelectionSchedule> FacultySelectionSchedules { get; set; }
+
+        // Super Admin DbSets
+        public DbSet<SuperAdmin> SuperAdmins { get; set; }
+        public DbSet<Department> Departments { get; set; }
+        public DbSet<DepartmentAdmin> DepartmentAdmins { get; set; }
+        public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         /// <summary>
         /// PERMANENT FIX: Automatically normalize departments before saving to database
@@ -98,10 +106,154 @@ namespace TutorLiveMentor.Models
                 .WithMany(a => a.Enrollments)
                 .HasForeignKey(se => se.AssignedSubjectId);
 
+            // Super Admin Configurations
+            
+            // SuperAdmin - unique email
+            modelBuilder.Entity<SuperAdmin>()
+                .HasIndex(sa => sa.Email)
+                .IsUnique();
+
+            // Department - unique code
+            modelBuilder.Entity<Department>()
+                .HasIndex(d => d.DepartmentCode)
+                .IsUnique();
+
+            // DepartmentAdmin relationships
+            modelBuilder.Entity<DepartmentAdmin>()
+                .HasOne(da => da.Admin)
+                .WithMany()
+                .HasForeignKey(da => da.AdminId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DepartmentAdmin>()
+                .HasOne(da => da.Department)
+                .WithMany(d => d.DepartmentAdmins)
+                .HasForeignKey(da => da.DepartmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // SystemConfiguration - unique key
+            modelBuilder.Entity<SystemConfiguration>()
+                .HasIndex(sc => sc.ConfigKey)
+                .IsUnique();
+
+            // AuditLog relationship
+            modelBuilder.Entity<AuditLog>()
+                .HasOne(al => al.SuperAdmin)
+                .WithMany(sa => sa.AuditLogs)
+                .HasForeignKey(al => al.SuperAdminId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Admin configuration
             modelBuilder.Entity<Admin>()
                 .HasIndex(a => a.Email)
                 .IsUnique();
+
+            // Seed initial super admin
+            modelBuilder.Entity<SuperAdmin>().HasData(
+                new SuperAdmin
+                {
+                    SuperAdminId = 1,
+                    Name = "System Administrator",
+                    Email = "superadmin@rgmcet.edu.in",
+                    Password = "Super@123",
+                    PhoneNumber = "9876543210",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 1, 1),
+                    Role = "SuperAdmin"
+                }
+            );
+
+            // Seed initial departments
+            modelBuilder.Entity<Department>().HasData(
+                new Department
+                {
+                    DepartmentId = 1,
+                    DepartmentName = "Computer Science and Engineering (Data Science)",
+                    DepartmentCode = "CSEDS",
+                    Description = "Department of Computer Science and Engineering with specialization in Data Science",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 1, 1),
+                    AllowStudentRegistration = true,
+                    AllowFacultyAssignment = true,
+                    AllowSubjectSelection = true
+                },
+                new Department
+                {
+                    DepartmentId = 2,
+                    DepartmentName = "Computer Science and Engineering",
+                    DepartmentCode = "CSE",
+                    Description = "Department of Computer Science and Engineering",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 1, 1),
+                    AllowStudentRegistration = true,
+                    AllowFacultyAssignment = true,
+                    AllowSubjectSelection = true
+                },
+                new Department
+                {
+                    DepartmentId = 3,
+                    DepartmentName = "Electronics and Communication Engineering",
+                    DepartmentCode = "ECE",
+                    Description = "Department of Electronics and Communication Engineering",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 1, 1),
+                    AllowStudentRegistration = true,
+                    AllowFacultyAssignment = true,
+                    AllowSubjectSelection = true
+                },
+                new Department
+                {
+                    DepartmentId = 4,
+                    DepartmentName = "Mechanical Engineering",
+                    DepartmentCode = "MECH",
+                    Description = "Department of Mechanical Engineering",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 1, 1),
+                    AllowStudentRegistration = true,
+                    AllowFacultyAssignment = true,
+                    AllowSubjectSelection = true
+                },
+                new Department
+                {
+                    DepartmentId = 5,
+                    DepartmentName = "Civil Engineering",
+                    DepartmentCode = "CIVIL",
+                    Description = "Department of Civil Engineering",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 1, 1),
+                    AllowStudentRegistration = true,
+                    AllowFacultyAssignment = true,
+                    AllowSubjectSelection = true
+                },
+                new Department
+                {
+                    DepartmentId = 6,
+                    DepartmentName = "Electrical and Electronics Engineering",
+                    DepartmentCode = "EEE",
+                    Description = "Department of Electrical and Electronics Engineering",
+                    IsActive = true,
+                    CreatedDate = new DateTime(2024, 1, 1),
+                    AllowStudentRegistration = true,
+                    AllowFacultyAssignment = true,
+                    AllowSubjectSelection = true
+                }
+            );
+
+            // Link existing CSEDS admin to CSEDS department
+            modelBuilder.Entity<DepartmentAdmin>().HasData(
+                new DepartmentAdmin
+                {
+                    DepartmentAdminId = 1,
+                    AdminId = 1, // cseds@rgmcet.edu.in
+                    DepartmentId = 1, // CSEDS
+                    AssignedDate = new DateTime(2024, 1, 1),
+                    CanManageStudents = true,
+                    CanManageFaculty = true,
+                    CanManageSubjects = true,
+                    CanViewReports = true,
+                    CanManageSchedules = true
+                }
+            );
 
             // Seed the specific admin data you requested
             modelBuilder.Entity<Admin>().HasData(

@@ -24,6 +24,9 @@ namespace TutorLiveMentor.Models
         [Required]
         public string Department { get; set; }
 
+        // Semester field for semester-based filtering (I, II, etc.)
+        public string Semester { get; set; } = string.Empty;
+
         [Required]
         [EmailAddress]
         public string Email { get; set; }

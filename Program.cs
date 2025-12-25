@@ -22,7 +22,13 @@ builder.Services.AddSignalR(options =>
 
 // Register services
 builder.Services.AddScoped<SignalRService>();
+builder.Services.AddScoped<SuperAdminService>();
+builder.Services.AddScoped<DynamicDepartmentSetupService>();
 builder.Services.AddSingleton<PasswordHashService>();
+
+// [DYNAMIC TABLES] Add Dynamic Database Services
+builder.Services.AddScoped<DynamicTableService>();
+builder.Services.AddSingleton<DynamicDbContextFactory>();
 
 // [SECURITY] Add Rate Limiting for login attempts
 builder.Services.AddRateLimiter(rateLimiterOptions =>

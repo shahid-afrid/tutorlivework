@@ -1,0 +1,466 @@
+@model TutorLiveMentor.Models.SuperAdminLoginViewModel
+@{
+    ViewData["Title"] = "Super Admin Login";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TutorLiveMentor</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --royal-blue: #274060;
+            --warm-gold: #FFC857;
+            --cream: #F9FAF2;
+            --slate: #CED3DC;
+            --card-shadow: rgba(39,64,96,0.13);
+            --cseds-purple: #6f42c1;
+            --cseds-teal: #20c997;
+            --super-admin-red: #dc3545;
+            --super-admin-gold: #ffc107;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: linear-gradient(rgba(249, 250, 242, 0.15), rgba(255, 200, 87, 0.10)),
+            url('@Url.Content("~/images/RGMCET-BACKGROUND.jpg")') center center/cover no-repeat fixed;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            background: linear-gradient(135deg, var(--royal-blue) 0%, var(--super-admin-red) 50%, var(--super-admin-gold) 100%);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        html {
+            background: linear-gradient(135deg, var(--royal-blue) 0%, var(--super-admin-red) 100%);
+            min-height: 100vh;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(249, 250, 242, 0.98);
+            backdrop-filter: blur(20px);
+            border: 3px solid var(--super-admin-gold);
+            border-radius: 30px;
+            padding: 50px 45px;
+            box-shadow: 0 20px 60px rgba(220, 53, 69, 0.3), 0 0 100px rgba(255, 193, 7, 0.2);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .super-admin-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--super-admin-red), var(--super-admin-gold));
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.85em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .login-header h1 {
+            color: var(--royal-blue);
+            font-weight: 700;
+            font-size: 2em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .login-header h1 .logo-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @@keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 0.95em;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--royal-blue);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-label i {
+            color: var(--super-admin-red);
+        }
+
+        .form-control {
+            border: 2px solid var(--slate);
+            border-radius: 15px;
+            padding: 14px 18px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            border-color: var(--super-admin-red);
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+            background: white;
+            outline: none;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-password:hover {
+            color: var(--super-admin-red);
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            border: 2px solid var(--slate);
+            border-radius: 4px;
+        }
+
+        .remember-me label {
+            font-size: 0.9em;
+            color: #666;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .super-admin-btn {
+            background: linear-gradient(135deg, var(--super-admin-red) 0%, var(--super-admin-gold) 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .super-admin-btn:hover {
+            background: linear-gradient(135deg, var(--super-admin-gold) 0%, var(--super-admin-red) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(220, 53, 69, 0.4);
+        }
+
+        .super-admin-btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid var(--super-admin-red);
+        }
+
+        .alert i {
+            font-size: 1.3em;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .back-link a {
+            color: var(--cseds-purple);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-link a:hover {
+            color: var(--super-admin-red);
+            gap: 10px;
+        }
+
+        .security-notice {
+            background: rgba(220, 53, 69, 0.1);
+            border: 2px solid rgba(220, 53, 69, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .security-notice i {
+            color: var(--super-admin-red);
+            margin-right: 6px;
+        }
+
+        @@media (max-width: 576px) {
+            .login-card {
+                padding: 35px 25px;
+                border-radius: 25px;
+            }
+
+            .login-header h1 {
+                font-size: 1.6em;
+            }
+
+            .super-admin-btn {
+                font-size: 1em;
+                padding: 13px;
+            }
+        }
+
+        .app-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(249,250,242,0.95);
+            backdrop-filter: blur(12px);
+            border-top: 2px solid var(--slate);
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #274060;
+            z-index: 10;
+        }
+
+        .footer-line {
+            margin: 4px 0;
+        }
+
+        .footer-highlight {
+            font-weight: 700;
+            color: #274060;
+        }
+
+        .footer-name {
+            font-weight: 600;
+            color: #274060;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="super-admin-badge">
+                    <i class="fas fa-shield-halved"></i> SUPER ADMIN ACCESS
+                </div>
+                <h1>
+                    <img src="@Url.Content("~/images/RGMCET.jpg")" class="logo-img" alt="RGMCET Logo" />
+                    Super Admin Portal
+                </h1>
+                <p>System-Wide Control Panel</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>@ViewBag.ErrorMessage</strong>
+                </div>
+            }
+
+            <form asp-action="Login" asp-controller="SuperAdmin" method="post">
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email Address
+                    </label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="superadmin@@rgmcet.edu.in" required autofocus />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">
+                        <i class="fas fa-lock"></i> Password
+                    </label>
+                    <div class="password-wrapper">
+                        <input asp-for="Password" type="password" class="form-control" id="passwordInput" placeholder="Enter super admin password" required />
+                        <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="remember-me">
+                    <input asp-for="RememberMe" type="checkbox" id="rememberMe" />
+                    <label for="rememberMe">Keep me signed in for 30 days</label>
+                </div>
+
+                <button type="submit" class="super-admin-btn">
+                    <i class="fas fa-sign-in-alt"></i> Sign In to Super Admin
+                </button>
+            </form>
+
+            <div class="back-link">
+                <a href="/">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+
+            <div class="security-notice">
+                <i class="fas fa-shield-alt"></i>
+                <strong>Secure Connection:</strong> This is a protected super admin area. All activities are logged and monitored.
+            </div>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-line">
+            Developed under the guidance of <span class="footer-highlight">Dr. P. Penchala Prasad</span>, Associate Professor, CSE(DS), RGMCET
+        </div>
+        <div class="footer-line">
+            With team <span class="footer-name">Mr. S. Md. Shahid Afrid</span> (23091A32D4) & <span class="footer-name">Ms. G. Veena</span> (23091A32H9)
+        </div>
+        <div class="footer-line">
+            &copy; All Rights Reserved @@2025
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.getElementById('passwordInput');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const email = document.querySelector('input[name="Email"]').value;
+            const password = document.querySelector('input[name="Password"]').value;
+
+            if (!email || !password) {
+                e.preventDefault();
+                alert('Please fill in all fields');
+                return false;
+            }
+        });
+
+        console.log('?? Super Admin Login Page Loaded');
+    </script>
+</body>
+</html>

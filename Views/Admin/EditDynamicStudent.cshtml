@@ -1,0 +1,335 @@
+@model TutorLiveMentor.Models.CSEDSStudentViewModel
+@{
+    ViewData["Title"] = "Edit Student - " + ViewBag.DepartmentName;
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TutorLiveMentor</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        :root {
+            --royal-blue: #274060;
+            --warm-gold: #FFC857;
+            --cream: #F9FAF2;
+            --slate: #CED3DC;
+            --card-shadow: rgba(39,64,96,0.13);
+            --success-green: #28a745;
+            --error-red: #dc3545;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: linear-gradient(rgba(249, 250, 242, 0.15), rgba(255, 200, 87, 0.10)),
+            url('@Url.Content("~/images/RGMCET-BACKGROUND.jpg")') center center/cover no-repeat fixed;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            display: block;
+            background: linear-gradient(135deg, var(--cream) 60%, var(--warm-gold) 100%);
+            opacity: 0.20;
+            pointer-events: none;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            background: rgba(249,250,242,0.92);
+            box-shadow: 0 8px 32px var(--card-shadow);
+            border-radius: 20px;
+            padding: 30px 40px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            margin-bottom: 30px;
+            border: 2px solid var(--slate);
+        }
+
+        .page-header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--royal-blue);
+            margin: 0 0 10px 0;
+            letter-spacing: 1.2px;
+        }
+
+        .form-card {
+            background: rgba(249,250,242,0.95);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--slate);
+            box-shadow: 0 8px 32px var(--card-shadow);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.95em;
+            color: var(--royal-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--slate);
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--warm-gold);
+            box-shadow: 0 0 0 3px rgba(255,200,87,0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .text-danger {
+            color: var(--error-red);
+            font-size: 0.85em;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .glass-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            background: linear-gradient(135deg, var(--royal-blue), #1a2f47);
+            color: white;
+            box-shadow: 0 4px 15px rgba(39,64,96,0.2);
+        }
+
+        .glass-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39,64,96,0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid;
+        }
+
+        .alert-danger {
+            background: rgba(220,53,69,0.1);
+            border-color: var(--error-red);
+            color: var(--error-red);
+        }
+
+        .alert-success {
+            background: rgba(40,167,69,0.1);
+            border-color: var(--success-green);
+            color: var(--success-green);
+        }
+
+        small {
+            color: #666;
+            font-size: 0.9em;
+            display: block;
+            margin-top: 5px;
+        }
+
+        @@media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-user-edit"></i> 
+                Edit @ViewBag.DepartmentName Student
+            </h1>
+            <p>Update student information</p>
+        </div>
+
+        <!-- Form Section -->
+        <div class="form-card">
+            @if (ViewData.ModelState.ErrorCount > 0)
+            {
+                <div class="alert alert-danger">
+                    <strong>Please correct the following errors:</strong>
+                    <ul style="margin: 10px 0 0 20px;">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <form method="post" id="editStudentForm">
+                <input asp-for="StudentId" type="hidden" />
+                <input asp-for="IsEdit" type="hidden" value="true" />
+                <input asp-for="Department" type="hidden" />
+
+                <div class="form-group">
+                    <label asp-for="FullName" class="form-label">Student Name <span class="text-danger">*</span></label>
+                    <input asp-for="FullName" class="form-control" placeholder="Enter full name" required />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="RegdNumber" class="form-label">Registration Number</label>
+                    <input asp-for="RegdNumber" class="form-control" readonly style="background: #f8f9fa;" />
+                    <span asp-validation-for="RegdNumber" class="text-danger"></span>
+                    <small>Registration number cannot be changed</small>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="student@rgmcet.edu.in" required />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="Year" class="form-label">Academic Year <span class="text-danger">*</span></label>
+                        <select asp-for="Year" class="form-control" required>
+                            <option value="">Select Year</option>
+                            @foreach (var year in Model.AvailableYears)
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Year" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Semester" class="form-label">Semester <span class="text-danger">*</span></label>
+                        <select asp-for="Semester" class="form-control" required>
+                            <option value="">Select Semester</option>
+                            <option value="I">Semester I (Odd)</option>
+                            <option value="II">Semester II (Even)</option>
+                        </select>
+                        <span asp-validation-for="Semester" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">
+                        Password (Leave blank to keep current)
+                    </label>
+                    <input asp-for="Password" type="password" class="form-control" 
+                           placeholder="Enter new password to change" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                    <small>Only enter a password if you want to change it</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <input value="@ViewBag.DepartmentName" class="form-control" readonly style="background: #f8f9fa;" />
+                    <small>This field is automatically set based on student's department</small>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="glass-btn">
+                        <i class="fas fa-save"></i>
+                        Update Student
+                    </button>
+                    <a href="@Url.Action("ManageDynamicStudents", "Admin", new { department = ViewBag.DepartmentCode })" class="glass-btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Students
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Form submission
+        document.getElementById('editStudentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = {
+                StudentId: document.querySelector('input[name="StudentId"]').value,
+                FullName: document.querySelector('input[name="FullName"]').value,
+                Email: document.querySelector('input[name="Email"]').value,
+                Year: document.querySelector('select[name="Year"]').value,
+                Semester: document.querySelector('select[name="Semester"]').value,
+                Password: document.querySelector('input[name="Password"]').value || null
+            };
+
+            try {
+                const response = await fetch('@Url.Action("UpdateDynamicStudent", "Admin")?department=@ViewBag.DepartmentCode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Student updated successfully!');
+                    window.location.href = '@Url.Action("ManageDynamicStudents", "Admin")?department=@ViewBag.DepartmentCode';
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while updating the student.');
+            }
+        });
+    </script>
+</body>
+</html>

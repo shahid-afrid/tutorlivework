@@ -7,6 +7,10 @@ namespace TutorLiveMentor.Services
     /// <summary>
     /// Service to ensure department names are always normalized before saving to database
     /// PERMANENT FIX for CSE(DS) department mismatch issues
+    /// 
+    /// CRITICAL: ALL CSE Data Science variations (CSE(DS), CSE (DS), CSDS, etc.) 
+    /// are automatically converted to "CSEDS" before database save.
+    /// This prevents any mismatch between display format and storage format.
     /// </summary>
     public class DepartmentNormalizationService
     {
@@ -19,7 +23,8 @@ namespace TutorLiveMentor.Services
 
         /// <summary>
         /// Intercepts SaveChanges to normalize all department fields before saving
-        /// This ensures CSEDS is always stored consistently
+        /// This ensures CSEDS is ALWAYS stored consistently (never CSE(DS) or variations)
+        /// Works on: Students, Faculties, Subjects, Admins, SubjectAssignments
         /// </summary>
         public void NormalizeDepartmentsBeforeSave()
         {
@@ -37,10 +42,10 @@ namespace TutorLiveMentor.Services
                     var currentValue = departmentProperty.CurrentValue.ToString();
                     var normalizedValue = DepartmentNormalizer.Normalize(currentValue);
 
-                    // Only update if different
+                    // Only update if different (e.g., CSE(DS) -> CSEDS)
                     if (currentValue != normalizedValue)
                     {
-                        Console.WriteLine($"[DepartmentNormalizationService] Normalizing: '{currentValue}' ? '{normalizedValue}'");
+                        Console.WriteLine($"[DepartmentNormalizationService] Normalizing: '{currentValue}' -> '{normalizedValue}'");
                         departmentProperty.CurrentValue = normalizedValue;
                     }
                 }
@@ -49,6 +54,7 @@ namespace TutorLiveMentor.Services
 
         /// <summary>
         /// Validates that a department name will normalize correctly
+        /// NOTE: "CSE(DS)" and variations are valid (they normalize to "CSEDS")
         /// </summary>
         public bool IsValidDepartment(string department)
         {
@@ -57,11 +63,18 @@ namespace TutorLiveMentor.Services
 
             var normalized = DepartmentNormalizer.Normalize(department);
             
-            // Check if it's a known department
+            // Check if it's a known department (after normalization)
             var validDepartments = new[]
             {
-                "CSEDS", "CSE(AIML)", "CSE(CS)", "CSE(BS)", "CSE",
-                "ECE", "EEE", "MECH", "CIVIL"
+                "CSEDS",      // CSE Data Science (ONLY format stored in DB)
+                "CSE(AIML)",  // CSE AI/ML
+                "CSE(CS)",    // CSE Cyber Security
+                "CSE(BS)",    // CSE Business Systems
+                "CSE",        // Computer Science
+                "ECE",        // Electronics and Communication
+                "EEE",        // Electrical and Electronics
+                "MECH",       // Mechanical
+                "CIVIL"       // Civil
             };
 
             return validDepartments.Contains(normalized);

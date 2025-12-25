@@ -4,6 +4,7 @@ using TutorLiveMentor.Models;
 using TutorLiveMentor.Services;
 using TutorLiveMentor.Helpers;
 using Microsoft.AspNetCore.Antiforgery;
+using OfficeOpenXml;
 
 namespace TutorLiveMentor.Controllers
 {
@@ -13,7 +14,7 @@ namespace TutorLiveMentor.Controllers
     public partial class AdminController
     {
         /// <summary>
-        /// CSEDS Reports page
+        /// CSEDS Reports page - NOW USING DYNAMIC TABLES
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> CSEDSReports()
@@ -33,11 +34,13 @@ namespace TutorLiveMentor.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Get data for report filters
+            // ? NEW: Use CSEDS-specific tables
+            using var csedsContext = _dbFactory.GetContext("CSEDS");
+
+            // Get data for report filters from CSEDS tables
             var viewModel = new CSEDSReportsViewModel
             {
-                AvailableYears = await _context.Subjects
-                    .Where(s => s.Department == "CSEDS" || s.Department == "CSE(DS)")
+                AvailableYears = await csedsContext.Subjects
                     .Select(s => s.Year)
                     .Distinct()
                     .OrderBy(y => y)
@@ -49,14 +52,12 @@ namespace TutorLiveMentor.Controllers
                     new SemesterOption { Value = "II", Text = "Semester II (2)", NumericValue = 2 }
                 },
 
-                AvailableSubjects = await _context.Subjects
-                    .Where(s => s.Department == DepartmentNormalizer.Normalize("CSE(DS)"))
+                AvailableSubjects = await csedsContext.Subjects
                     .OrderBy(s => s.Year)
                     .ThenBy(s => s.Name)
                     .ToListAsync(),
 
-                AvailableFaculty = await _context.Faculties
-                    .Where(f => f.Department == DepartmentNormalizer.Normalize("CSE(DS)"))
+                AvailableFaculty = await csedsContext.Faculties
                     .OrderBy(f => f.Name)
                     .ToListAsync()
             };
@@ -65,7 +66,7 @@ namespace TutorLiveMentor.Controllers
         }
 
         /// <summary>
-        /// Manage CSEDS Students page
+        /// Manage CSEDS Students page - NOW USING DYNAMIC TABLES
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> ManageCSEDSStudents()
@@ -85,16 +86,18 @@ namespace TutorLiveMentor.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Get all CSEDS students with their enrollments
-            var students = await _context.Students
-                .Where(s => s.Department == "CSEDS" || s.Department == "CSE(DS)")
-                .ToListAsync();
+            // ? NEW: Use CSEDS-specific tables
+            using var csedsContext = _dbFactory.GetContext("CSEDS");
+
+            // Get all CSEDS students from Students_CSEDS table
+            var students = await csedsContext.Students.ToListAsync();
 
             var studentDetails = new List<StudentDetailDto>();
 
             foreach (var student in students)
             {
-                var enrollments = await _context.StudentEnrollments
+                // Get enrollments from StudentEnrollments_CSEDS table
+                var enrollments = await csedsContext.StudentEnrollments
                     .Include(se => se.AssignedSubject)
                         .ThenInclude(a => a.Subject)
                     .Include(se => se.AssignedSubject)
@@ -132,7 +135,7 @@ namespace TutorLiveMentor.Controllers
         }
 
         /// <summary>
-        /// Filter students based on criteria
+        /// Filter students based on criteria - NOW USING DYNAMIC TABLES
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> GetFilteredStudents([FromBody] StudentFilterRequest filters)
@@ -143,9 +146,10 @@ namespace TutorLiveMentor.Controllers
 
             try
             {
-                var query = _context.Students
-                    .Where(s => s.Department == "CSEDS" || s.Department == "CSE(DS)")
-                    .AsQueryable();
+                // ? NEW: Use CSEDS-specific tables
+                using var csedsContext = _dbFactory.GetContext("CSEDS");
+
+                var query = csedsContext.Students.AsQueryable();
 
                 // Apply search filter
                 if (!string.IsNullOrEmpty(filters.SearchText))
@@ -168,7 +172,7 @@ namespace TutorLiveMentor.Controllers
 
                 foreach (var student in students)
                 {
-                    var enrollments = await _context.StudentEnrollments
+                    var enrollments = await csedsContext.StudentEnrollments
                         .Include(se => se.AssignedSubject)
                             .ThenInclude(a => a.Subject)
                         .Include(se => se.AssignedSubject)
@@ -204,11 +208,12 @@ namespace TutorLiveMentor.Controllers
                     });
                 }
 
-                return Json(new { success = true, data = studentDetails });
+                return Json(new { success = true, students = studentDetails });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = $"Error filtering students: {ex.Message}" });
+                Console.WriteLine($"Error filtering students: {ex.Message}");
+                return Json(new { success = false, message = "Error filtering students" });
             }
         }
 
@@ -332,8 +337,9 @@ namespace TutorLiveMentor.Controllers
                     FullName = model.FullName,
                     RegdNumber = model.RegdNumber,
                     Email = model.Email,
-                    Password = string.IsNullOrWhiteSpace(model.Password) ? "TutorLive123" : model.Password,
+                    Password = string.IsNullOrWhiteSpace(model.Password) ? "rgmcet123" : model.Password,
                     Year = model.Year,
+                    Semester = model.Semester ?? "I", // Save semester, default to I if not provided
                     Department = DepartmentNormalizer.Normalize(model.Department), // PERMANENT FIX: Normalize department
                     SelectedSubject = ""
                 };
@@ -390,6 +396,7 @@ namespace TutorLiveMentor.Controllers
                 RegdNumber = student.RegdNumber,
                 Email = student.Email,
                 Year = student.Year,
+                Semester = student.Semester ?? "I", // Load semester value
                 Department = student.Department,
                 IsEdit = true,
                 AvailableYears = new List<string> { "I Year", "II Year", "III Year", "IV Year" }
@@ -399,7 +406,7 @@ namespace TutorLiveMentor.Controllers
         }
 
         /// <summary>
-        /// Edit CSEDS student POST action
+        /// Edit CSEDS student - POST
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> EditCSEDSStudent(CSEDSStudentViewModel model)
@@ -442,6 +449,7 @@ namespace TutorLiveMentor.Controllers
                 student.FullName = model.FullName;
                 student.Email = model.Email;
                 student.Year = model.Year;
+                student.Semester = model.Semester ?? "I"; // Update semester, default to I if not provided
 
                 // Update password only if provided
                 if (!string.IsNullOrWhiteSpace(model.Password))
@@ -467,6 +475,466 @@ namespace TutorLiveMentor.Controllers
                 ModelState.AddModelError("", $"Error updating student: {ex.Message}");
                 model.AvailableYears = new List<string> { "I Year", "II Year", "III Year", "IV Year" };
                 return View(model);
+            }
+        }
+
+        /// <summary>
+        /// Download Excel template for bulk student upload
+        /// </summary>
+        [HttpGet]
+        public IActionResult DownloadStudentTemplate()
+        {
+            var department = HttpContext.Session.GetString("AdminDepartment");
+            if (!IsCSEDSDepartment(department))
+                return RedirectToAction("Login");
+
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("Students Template");
+
+                    // Set header style
+                    var headerCells = worksheet.Cells["A1:G1"];
+                    headerCells.Style.Font.Bold = true;
+                    headerCells.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    headerCells.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(155, 89, 182));
+                    headerCells.Style.Font.Color.SetColor(System.Drawing.Color.White);
+                    headerCells.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                    // Add headers
+                    worksheet.Cells[1, 1].Value = "StudentID";
+                    worksheet.Cells[1, 2].Value = "FullName";
+                    worksheet.Cells[1, 3].Value = "Email";
+                    worksheet.Cells[1, 4].Value = "DepartmentName";
+                    worksheet.Cells[1, 5].Value = "Year";
+                    worksheet.Cells[1, 6].Value = "Semester";
+                    worksheet.Cells[1, 7].Value = "Password";
+
+                    // Add sample data
+                    worksheet.Cells[2, 1].Value = "23091A32D4";
+                    worksheet.Cells[2, 2].Value = "John Doe";
+                    worksheet.Cells[2, 3].Value = "john.doe@example.com";
+                    worksheet.Cells[2, 4].Value = "Cse Ds";
+                    worksheet.Cells[2, 5].Value = "2";
+                    worksheet.Cells[2, 6].Value = "I";
+                    worksheet.Cells[2, 7].Value = "Password123";
+
+                    // Add instructions
+                    worksheet.Cells[4, 1].Value = "Instructions:";
+                    worksheet.Cells[4, 1].Style.Font.Bold = true;
+                    worksheet.Cells[5, 1].Value = "1. StudentID must be unique (e.g., 23091A32D4)";
+                    worksheet.Cells[6, 1].Value = "2. DepartmentName should be 'Cse Ds' or 'CSEDS'";
+                    worksheet.Cells[7, 1].Value = "3. Year should be 1, 2, 3, or 4";
+                    worksheet.Cells[8, 1].Value = "4. Semester should be I or II (or 1 or 2)";
+                    worksheet.Cells[9, 1].Value = "5. Password is optional (default: rgmcet123 if blank)";
+                    worksheet.Cells[10, 1].Value = "6. Delete this sample row and instructions before uploading";
+
+                    // Auto-fit columns
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                    var stream = new MemoryStream();
+                    package.SaveAs(stream);
+                    stream.Position = 0;
+
+                    var fileName = $"Students_Template_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                    return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating template: {ex.Message}");
+                TempData["ErrorMessage"] = $"Error generating template: {ex.Message}";
+                return RedirectToAction("ManageCSEDSStudents");
+            }
+        }
+
+        /// <summary>
+        /// Bulk upload students from Excel file
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> BulkUploadStudents(IFormFile excelFile)
+        {
+            var department = HttpContext.Session.GetString("AdminDepartment");
+            if (!IsCSEDSDepartment(department))
+                return RedirectToAction("Login");
+
+            if (excelFile == null || excelFile.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Please select an Excel file to upload.";
+                return RedirectToAction("ManageCSEDSStudents");
+            }
+
+            if (!excelFile.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "Only .xlsx files are supported.";
+                return RedirectToAction("ManageCSEDSStudents");
+            }
+
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                var successCount = 0;
+                var errorCount = 0;
+                var errors = new List<string>();
+
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets[0];
+                        var rowCount = worksheet.Dimension?.Rows ?? 0;
+
+                        if (rowCount < 2)
+                        {
+                            TempData["ErrorMessage"] = "The Excel file is empty or has no data rows.";
+                            return RedirectToAction("ManageCSEDSStudents");
+                        }
+
+                        // Start from row 2 (skip header)
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            try
+                            {
+                                // Read data from Excel
+                                var studentId = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                                var fullName = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                                var email = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+                                var deptName = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+                                var yearStr = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+                                var semesterStr = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
+                                var password = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
+
+                                // Validate required fields
+                                if (string.IsNullOrWhiteSpace(studentId) ||
+                                    string.IsNullOrWhiteSpace(fullName) ||
+                                    string.IsNullOrWhiteSpace(email) ||
+                                    string.IsNullOrWhiteSpace(deptName) ||
+                                    string.IsNullOrWhiteSpace(yearStr))
+                                {
+                                    errors.Add($"Row {row}: Missing required fields");
+                                    errorCount++;
+                                    continue;
+                                }
+
+                                // Check if student already exists
+                                var existingStudent = await _context.Students
+                                    .FirstOrDefaultAsync(s => s.Id == studentId || s.RegdNumber == studentId);
+
+                                if (existingStudent != null)
+                                {
+                                    errors.Add($"Row {row}: Student ID {studentId} already exists");
+                                    errorCount++;
+                                    continue;
+                                }
+
+                                // Parse year
+                                if (!int.TryParse(yearStr, out int year) || year < 1 || year > 4)
+                                {
+                                    errors.Add($"Row {row}: Invalid Year value (must be 1-4)");
+                                    errorCount++;
+                                    continue;
+                                }
+
+                                // Parse semester (optional, default to I)
+                                var semester = "I";
+                                if (!string.IsNullOrWhiteSpace(semesterStr))
+                                {
+                                    // Accept both Roman numerals (I, II) and numbers (1, 2)
+                                    var semesterUpper = semesterStr.ToUpper().Trim();
+                                    if (semesterUpper == "I" || semesterUpper == "1")
+                                    {
+                                        semester = "I";
+                                    }
+                                    else if (semesterUpper == "II" || semesterUpper == "2")
+                                    {
+                                        semester = "II";
+                                    }
+                                    else
+                                    {
+                                        errors.Add($"Row {row}: Invalid Semester value (must be I, II, 1, or 2)");
+                                        errorCount++;
+                                        continue;
+                                    }
+                                }
+
+                                // Create student
+                                var student = new Student
+                                {
+                                    Id = studentId,
+                                    RegdNumber = studentId,
+                                    FullName = fullName,
+                                    Email = email,
+                                    Password = string.IsNullOrWhiteSpace(password) ? "rgmcet123" : password,
+                                    Department = DepartmentNormalizer.Normalize(deptName),
+                                    Year = year.ToString(),
+                                    Semester = semester,
+                                    SelectedSubject = ""
+                                };
+
+                                _context.Students.Add(student);
+                                successCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.Add($"Row {row}: {ex.Message}");
+                                errorCount++;
+                            }
+                        }
+
+                        // Save all students
+                        if (successCount > 0)
+                        {
+                            await _context.SaveChangesAsync();
+
+                            await _signalRService.NotifyUserActivity(
+                                HttpContext.Session.GetString("AdminEmail") ?? "",
+                                "Admin",
+                                "Bulk Upload",
+                                $"{successCount} students uploaded successfully"
+                            );
+
+                            await BroadcastDashboardUpdate($"Bulk upload: {successCount} students added");
+                        }
+                    }
+                }
+
+                // Prepare result message
+                var resultMessage = $"Upload completed: {successCount} students added successfully";
+                if (errorCount > 0)
+                {
+                    resultMessage += $", {errorCount} errors occurred";
+                    if (errors.Count > 0)
+                    {
+                        // Show ALL errors, not just first 5
+                        var errorDetails = string.Join("; ", errors);
+                        TempData["ErrorDetails"] = errorDetails;
+                    }
+                }
+
+                if (successCount > 0)
+                    TempData["SuccessMessage"] = resultMessage;
+                else
+                    TempData["ErrorMessage"] = "No students were added. " + resultMessage;
+
+                return RedirectToAction("ManageCSEDSStudents");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing Excel file: {ex.Message}");
+                TempData["ErrorMessage"] = $"Error processing file: {ex.Message}";
+                return RedirectToAction("ManageCSEDSStudents");
+            }
+        }
+
+        /// <summary>
+        /// Download Excel template for bulk faculty upload (CSEDS)
+        /// </summary>
+        [HttpGet]
+        public IActionResult DownloadCSEDSFacultyTemplate()
+        {
+            var department = HttpContext.Session.GetString("AdminDepartment");
+            if (!IsCSEDSDepartment(department))
+                return RedirectToAction("Login");
+
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("Faculty Template");
+
+                    // Set header style
+                    var headerCells = worksheet.Cells["A1:D1"];
+                    headerCells.Style.Font.Bold = true;
+                    headerCells.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    headerCells.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(155, 89, 182));
+                    headerCells.Style.Font.Color.SetColor(System.Drawing.Color.White);
+                    headerCells.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+
+                    // Add headers
+                    worksheet.Cells[1, 1].Value = "FacultyName";
+                    worksheet.Cells[1, 2].Value = "Email";
+                    worksheet.Cells[1, 3].Value = "DepartmentName";
+                    worksheet.Cells[1, 4].Value = "Password";
+
+                    // Add sample data
+                    worksheet.Cells[2, 1].Value = "Dr. John Doe";
+                    worksheet.Cells[2, 2].Value = "john.doe@rgmcet.edu.in";
+                    worksheet.Cells[2, 3].Value = "Cse Ds";
+                    worksheet.Cells[2, 4].Value = "Faculty@123";
+
+                    // Add instructions
+                    worksheet.Cells[4, 1].Value = "Instructions:";
+                    worksheet.Cells[4, 1].Style.Font.Bold = true;
+                    worksheet.Cells[5, 1].Value = "1. FacultyName is required (e.g., Dr. John Doe)";
+                    worksheet.Cells[6, 1].Value = "2. Email must be unique and valid";
+                    worksheet.Cells[7, 1].Value = "3. DepartmentName should be 'Cse Ds' or 'CSEDS'"
+;
+                    worksheet.Cells[8, 1].Value = "4. Password is optional (default: rgmcet123 if blank)";
+                    worksheet.Cells[9, 1].Value = "5. Delete this sample row and instructions before uploading";
+
+                    // Auto-fit columns
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                    var stream = new MemoryStream();
+                    package.SaveAs(stream);
+                    stream.Position = 0;
+
+                    var fileName = $"CSEDS_Faculty_Template_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                    return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating faculty template: {ex.Message}");
+                TempData["ErrorMessage"] = $"Error generating template: {ex.Message}";
+                return RedirectToAction("ManageCSEDSFaculty");
+            }
+        }
+
+        /// <summary>
+        /// Bulk upload faculty from Excel file (CSEDS)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> BulkUploadCSEDSFaculty(IFormFile excelFile)
+        {
+            var department = HttpContext.Session.GetString("AdminDepartment");
+            if (!IsCSEDSDepartment(department))
+                return RedirectToAction("Login");
+
+            if (excelFile == null || excelFile.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Please select an Excel file to upload.";
+                return RedirectToAction("ManageCSEDSFaculty");
+            }
+
+            if (!excelFile.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "Only .xlsx files are supported.";
+                return RedirectToAction("ManageCSEDSFaculty");
+            }
+
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                var successCount = 0;
+                var errorCount = 0;
+                var errors = new List<string>();
+
+                using (var stream = new MemoryStream())
+                {
+                    await excelFile.CopyToAsync(stream);
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        var worksheet = package.Workbook.Worksheets[0];
+                        var rowCount = worksheet.Dimension?.Rows ?? 0;
+
+                        if (rowCount < 2)
+                        {
+                            TempData["ErrorMessage"] = "The Excel file is empty or has no data rows.";
+                            return RedirectToAction("ManageCSEDSFaculty");
+                        }
+
+                        // Start from row 2 (skip header)
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+                            try
+                            {
+                                // Read data from Excel
+                                var facultyName = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                                var email = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                                var deptName = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+                                var password = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+
+                                // Validate required fields
+                                if (string.IsNullOrWhiteSpace(facultyName) ||
+                                    string.IsNullOrWhiteSpace(email) ||
+                                    string.IsNullOrWhiteSpace(deptName))
+                                {
+                                    errors.Add($"Row {row}: Missing required fields");
+                                    errorCount++;
+                                    continue;
+                                }
+
+                                // Check if faculty with this email already exists
+                                var existingFaculty = await _context.Faculties
+                                    .FirstOrDefaultAsync(f => f.Email == email);
+
+                                if (existingFaculty != null)
+                                {
+                                    errors.Add($"Row {row}: Faculty with email {email} already exists");
+                                    errorCount++;
+                                    continue;
+                                }
+
+                                // Create faculty
+                                var faculty = new Faculty
+                                {
+                                    Name = facultyName,
+                                    Email = email,
+                                    Password = string.IsNullOrWhiteSpace(password) ? "rgmcet123" : password,
+                                    Department = DepartmentNormalizer.Normalize(deptName)
+                                };
+
+                                _context.Faculties.Add(faculty);
+                                successCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.Add($"Row {row}: {ex.Message}");
+                                errorCount++;
+                            }
+                        }
+
+                        // Save all faculty
+                        if (successCount > 0)
+                        {
+                            await _context.SaveChangesAsync();
+
+                            await _signalRService.NotifyUserActivity(
+                                HttpContext.Session.GetString("AdminEmail") ?? "",
+                                "Admin",
+                                "Bulk Upload",
+                                $"{successCount} faculty members uploaded successfully"
+                            );
+
+                            await BroadcastDashboardUpdate($"Bulk upload: {successCount} faculty added");
+                        }
+                    }
+                }
+
+                // Prepare result message
+                var resultMessage = $"Upload completed: {successCount} faculty members added successfully";
+                if (errorCount > 0)
+                {
+                    resultMessage += $", {errorCount} errors occurred";
+                    if (errors.Count > 0)
+                    {
+                        // Show ALL errors, not just first 5
+                        var errorDetails = string.Join("; ", errors);
+                        TempData["ErrorDetails"] = errorDetails;
+                    }
+                }
+
+                if (successCount > 0)
+                    TempData["SuccessMessage"] = resultMessage;
+                else
+                    TempData["ErrorMessage"] = "No faculty members were added. " + resultMessage;
+
+                return RedirectToAction("ManageCSEDSFaculty");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing Excel file: {ex.Message}");
+                TempData["ErrorMessage"] = $"Error processing file: {ex.Message}";
+                return RedirectToAction("ManageCSEDSFaculty");
             }
         }
 
@@ -789,152 +1257,397 @@ namespace TutorLiveMentor.Controllers
         }
 
         /// <summary>
-        /// Get selection schedule status for a specific department - ENHANCED FOR DEPARTMENT ISOLATION
+        /// Generate report data for dynamic department
         /// </summary>
-        [HttpGet]
-        public async Task<IActionResult> GetSelectionScheduleStatus(string department = null)
+        [HttpPost]
+        public async Task<IActionResult> GetDynamicReportData([FromBody] dynamic filters)
         {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            var department = HttpContext.Session.GetString("AdminDepartment");
+
+            if (adminId == null || string.IsNullOrEmpty(department))
+            {
+                return Json(new { success = false, message = "Session expired. Please log in again.", unauthorized = true });
+            }
+
             try
             {
-                var adminDepartment = HttpContext.Session.GetString("AdminDepartment");
-                
-                // If no department specified, use admin's department
-                if (string.IsNullOrEmpty(department))
-                {
-                    department = adminDepartment;
-                }
+                var normalizedDept = DepartmentNormalizer.Normalize(department);
 
-                Console.WriteLine($"?? GetSelectionScheduleStatus Request:");
-                Console.WriteLine($"   - Requested Department: {department}");
-                Console.WriteLine($"   - Admin Department: {adminDepartment}");
+                var query = _context.StudentEnrollments
+                    .Include(se => se.Student)
+                    .Include(se => se.AssignedSubject)
+                        .ThenInclude(a => a.Subject)
+                    .Include(se => se.AssignedSubject)
+                        .ThenInclude(a => a.Faculty)
+                    .Where(se => se.Student.Department == normalizedDept);
 
-                // Security check: Admin can only check status for their own department
-                if (!string.IsNullOrEmpty(adminDepartment))
-                {
-                    var normalizedRequestedDept = DepartmentNormalizer.Normalize(department);
-                    var normalizedAdminDept = DepartmentNormalizer.Normalize(adminDepartment);
-                    
-                    if (normalizedRequestedDept != normalizedAdminDept)
+                int? subjectId = filters.selectedSubjectId;
+                int? facultyId = filters.selectedFacultyId;
+                int? year = filters.selectedYear;
+                string semester = filters.selectedSemester;
+
+                if (subjectId.HasValue)
+                    query = query.Where(se => se.AssignedSubject.SubjectId == subjectId.Value);
+
+                if (facultyId.HasValue)
+                    query = query.Where(se => se.AssignedSubject.FacultyId == facultyId.Value);
+
+                if (year.HasValue)
+                    query = query.Where(se => se.AssignedSubject.Subject.Year == year.Value);
+
+                if (!string.IsNullOrEmpty(semester))
+                    query = query.Where(se => se.AssignedSubject.Subject.Semester == semester);
+
+                var results = await query
+                    .OrderBy(se => se.EnrolledAt)
+                    .ThenBy(se => se.Student.FullName)
+                    .Select(se => new
                     {
-                        Console.WriteLine("? Access denied - Department mismatch");
-                        return Json(new { 
-                            success = false, 
-                            message = "You can only check schedule status for your own department" 
-                        });
-                    }
+                        StudentName = se.Student.FullName,
+                        StudentRegdNumber = se.Student.RegdNumber,
+                        StudentEmail = se.Student.Email,
+                        StudentYear = se.Student.Year,
+                        SubjectName = se.AssignedSubject.Subject.Name,
+                        FacultyName = se.AssignedSubject.Faculty.Name,
+                        FacultyEmail = se.AssignedSubject.Faculty.Email,
+                        EnrollmentDate = se.EnrolledAt.Date,
+                        EnrolledAt = se.EnrolledAt,
+                        Semester = se.AssignedSubject.Subject.Semester ?? ""
+                    })
+                    .ToListAsync();
+
+                return Json(new { success = true, data = results });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetDynamicReportData] Error: {ex.Message}");
+                return Json(new { success = false, message = $"Error generating report: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Export report to Excel for dynamic department
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> ExportDynamicReport([FromBody] dynamic filters)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            var department = HttpContext.Session.GetString("AdminDepartment");
+
+            if (adminId == null || string.IsNullOrEmpty(department))
+                return Unauthorized(new { success = false, message = "Unauthorized access" });
+
+            try
+            {
+                var normalizedDept = DepartmentNormalizer.Normalize(department);
+
+                var query = _context.StudentEnrollments
+                    .Include(se => se.Student)
+                    .Include(se => se.AssignedSubject)
+                        .ThenInclude(a => a.Subject)
+                    .Include(se => se.AssignedSubject)
+                        .ThenInclude(a => a.Faculty)
+                    .Where(se => se.Student.Department == normalizedDept);
+
+                int? subjectId = filters.selectedSubjectId;
+                int? facultyId = filters.selectedFacultyId;
+                int? year = filters.selectedYear;
+                string semester = filters.selectedSemester;
+
+                if (subjectId.HasValue)
+                    query = query.Where(se => se.AssignedSubject.SubjectId == subjectId.Value);
+
+                if (facultyId.HasValue)
+                    query = query.Where(se => se.AssignedSubject.FacultyId == facultyId.Value);
+
+                if (year.HasValue)
+                    query = query.Where(se => se.AssignedSubject.Subject.Year == year.Value);
+
+                if (!string.IsNullOrEmpty(semester))
+                    query = query.Where(se => se.AssignedSubject.Subject.Semester == semester);
+
+                var data = await query
+                    .OrderBy(se => se.Student.FullName)
+                    .ThenBy(se => se.AssignedSubject.Subject.Name)
+                    .Select(se => new
+                    {
+                        StudentName = se.Student.FullName,
+                        StudentRegdNumber = se.Student.RegdNumber,
+                        StudentEmail = se.Student.Email,
+                        StudentYear = se.Student.Year,
+                        SubjectName = se.AssignedSubject.Subject.Name,
+                        FacultyName = se.AssignedSubject.Faculty.Name,
+                        FacultyEmail = se.AssignedSubject.Faculty.Email,
+                        Semester = se.AssignedSubject.Subject.Semester ?? "",
+                        EnrolledAt = se.EnrolledAt
+                    })
+                    .ToListAsync();
+
+                if (data.Count == 0)
+                {
+                    return BadRequest(new { success = false, message = "No data found for the selected criteria" });
                 }
 
-                if (!IsCSEDSDepartment(department))
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using var package = new ExcelPackage();
+                var worksheet = package.Workbook.Worksheets.Add($"{department} Enrollment Report");
+
+                worksheet.Cells[1, 1].Value = "Student Name";
+                worksheet.Cells[1, 2].Value = "Registration Number";
+                worksheet.Cells[1, 3].Value = "Email";
+                worksheet.Cells[1, 4].Value = "Year";
+                worksheet.Cells[1, 5].Value = "Subject";
+                worksheet.Cells[1, 6].Value = "Faculty";
+                worksheet.Cells[1, 7].Value = "Semester";
+                worksheet.Cells[1, 8].Value = "Enrolled At";
+
+                using (var range = worksheet.Cells[1, 1, 1, 8])
                 {
-                    Console.WriteLine($"?? Not a CSEDS department: {department}");
-                    return Json(new { 
-                        isAvailable = true, 
-                        message = "Faculty selection is available (not a CSEDS department)",
-                        statusDescription = "Not applicable"
+                    range.Style.Font.Bold = true;
+                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                }
+
+                for (int i = 0; i < data.Count; i++)
+                {
+                    var row = data[i];
+                    worksheet.Cells[i + 2, 1].Value = row.StudentName;
+                    worksheet.Cells[i + 2, 2].Value = row.StudentRegdNumber;
+                    worksheet.Cells[i + 2, 3].Value = row.StudentEmail;
+                    worksheet.Cells[i + 2, 4].Value = row.StudentYear;
+                    worksheet.Cells[i + 2, 5].Value = row.SubjectName;
+                    worksheet.Cells[i + 2, 6].Value = row.FacultyName;
+                    worksheet.Cells[i + 2, 7].Value = row.Semester;
+                    worksheet.Cells[i + 2, 8].Value = row.EnrolledAt.ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                worksheet.Cells.AutoFitColumns();
+
+                var stream = new MemoryStream();
+                package.SaveAs(stream);
+                stream.Position = 0;
+
+                var fileName = $"{department}_Enrollment_Report_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+
+                await _signalRService.NotifyUserActivity(
+                    HttpContext.Session.GetString("AdminEmail") ?? "",
+                    "Admin",
+                    "Report Exported",
+                    $"{department} enrollment report exported to Excel"
+                );
+
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ExportDynamicReport] Error: {ex.Message}");
+                return BadRequest(new { success = false, message = $"Error exporting report: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get year-specific schedules for CSEDS department
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetYearSchedules()
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            var department = HttpContext.Session.GetString("AdminDepartment");
+
+            if (adminId == null || !IsCSEDSDepartment(department))
+            {
+                return Json(new { success = false, message = "Unauthorized access" });
+            }
+
+            try
+            {
+                var schedules = new List<object>();
+
+                for (int year = 1; year <= 4; year++)
+                {
+                    var schedule = await _context.FacultySelectionSchedules
+                        .FirstOrDefaultAsync(s => s.Department == "CSEDS" && s.Year == year);
+
+                    schedules.Add(new
+                    {
+                        year = year,
+                        isEnabled = schedule?.IsEnabled ?? false,
+                        scheduleId = schedule?.ScheduleId ?? 0
                     });
                 }
 
-                // Find schedule using OR condition instead of normalizer in query
-                var schedule = await _context.FacultySelectionSchedules
-                    .FirstOrDefaultAsync(s => s.Department == "CSEDS" || s.Department == "CSE(DS)");
+                return Json(new { success = true, schedules });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting year schedules: {ex.Message}");
+                return Json(new { success = false, message = $"Error loading schedules: {ex.Message}" });
+            }
+        }
 
-                if (schedule == null)
+        /// <summary>
+        /// Get statistics for a specific year
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetYearStatistics(int year)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            var department = HttpContext.Session.GetString("AdminDepartment");
+
+            if (adminId == null || !IsCSEDSDepartment(department))
+            {
+                return Json(new { success = false, message = "Unauthorized access" });
+            }
+
+            try
+            {
+                using var csedsContext = _dbFactory.GetContext("CSEDS");
+
+                // Convert year number to Roman numeral format used in database
+                // 1 -> "I Year", 2 -> "II Year", 3 -> "III Year", 4 -> "IV Year"
+                string[] romanYears = { "", "I Year", "II Year", "III Year", "IV Year" };
+                var yearString = year >= 1 && year <= 4 ? romanYears[year] : year.ToString();
+
+                // Also check for numeric format (just "1", "2", "3", "4")
+                var yearNumericString = year.ToString();
+
+                var studentsCount = await csedsContext.Students
+                    .Where(s => s.Year == yearString || s.Year == yearNumericString)
+                    .CountAsync();
+
+                var subjectsCount = await csedsContext.Subjects
+                    .Where(s => s.Year == year)
+                    .CountAsync();
+
+                var enrollmentsCount = await csedsContext.StudentEnrollments
+                    .Include(se => se.Student)
+                    .Where(se => se.Student.Year == yearString || se.Student.Year == yearNumericString)
+                    .CountAsync();
+
+                return Json(new
                 {
-                    Console.WriteLine("?? No schedule found - Default to available");
-                    return Json(new { 
-                        isAvailable = true, 
-                        message = "Faculty selection is currently available",
-                        statusDescription = "No schedule configured"
-                    });
-                }
-
-                Console.WriteLine($"?? Found schedule: IsEnabled={schedule.IsEnabled}, UseSchedule={schedule.UseSchedule}");
-
-                // Check if enabled
-                if (!schedule.IsEnabled)
-                {
-                    Console.WriteLine("? Schedule disabled by admin");
-                    return Json(new { 
-                        isAvailable = false, 
-                        message = schedule.DisabledMessage,
-                        statusDescription = "Disabled by administrator"
-                    });
-                }
-
-                // Check if using schedule
-                if (!schedule.UseSchedule)
-                {
-                    Console.WriteLine("? Schedule enabled - Always available");
-                    return Json(new { 
-                        isAvailable = true, 
-                        message = "Faculty selection is currently available",
-                        statusDescription = "Always Available"
-                    });
-                }
-
-                // Check schedule window
-                var now = DateTime.Now;
-                if (schedule.StartDateTime.HasValue && schedule.EndDateTime.HasValue)
-                {
-                    Console.WriteLine($"?? Checking time window: {schedule.StartDateTime} to {schedule.EndDateTime}");
-                    Console.WriteLine($"   Current time: {now}");
-                    
-                    if (now < schedule.StartDateTime.Value)
-                    {
-                        Console.WriteLine("? Not yet started");
-                        return Json(new { 
-                            isAvailable = false, 
-                            message = $"Faculty selection opens on {schedule.StartDateTime.Value:MMM dd, yyyy} at {schedule.StartDateTime.Value:hh:mm tt}",
-                            statusDescription = "Not Yet Started",
-                            startDateTime = schedule.StartDateTime,
-                            endDateTime = schedule.EndDateTime
-                        });
-                    }
-                    else if (now > schedule.EndDateTime.Value)
-                    {
-                        Console.WriteLine("? Period ended");
-                        return Json(new { 
-                            isAvailable = false, 
-                            message = "Faculty selection period has ended",
-                            statusDescription = "Period Ended",
-                            startDateTime = schedule.StartDateTime,
-                            endDateTime = schedule.EndDateTime
-                        });
-                    }
-                    else
-                    {
-                        Console.WriteLine("? Active period");
-                        return Json(new { 
-                            isAvailable = true, 
-                            message = $"Faculty selection is available until {schedule.EndDateTime.Value:MMM dd, yyyy} at {schedule.EndDateTime.Value:hh:mm tt}",
-                            statusDescription = "Active",
-                            startDateTime = schedule.StartDateTime,
-                            endDateTime = schedule.EndDateTime
-                        });
-                    }
-                }
-
-                Console.WriteLine("? Schedule enabled - Default available");
-                return Json(new { 
-                    isAvailable = true, 
-                    message = "Faculty selection is currently available",
-                    statusDescription = "Always Available"
+                    success = true,
+                    year,
+                    studentsCount,
+                    subjectsCount,
+                    enrollmentsCount
                 });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"? Error checking schedule status: {ex.Message}");
-                return Json(new { 
-                    isAvailable = true, 
-                    message = "Faculty selection is currently available (error checking schedule)",
-                    error = ex.Message
+                Console.WriteLine($"Error getting year statistics: {ex.Message}");
+                return Json(new { success = false, message = $"Error loading statistics: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Update year-specific schedule for CSEDS department
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> UpdateYearSchedule([FromBody] YearScheduleUpdateRequest request)
+        {
+            // Manual anti-forgery token validation for JSON requests
+            try
+            {
+                await _antiforgery.ValidateRequestAsync(HttpContext);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Anti-forgery validation failed: {ex.Message}");
+                return Json(new { success = false, message = "Security validation failed. Please refresh the page and try again." });
+            }
+
+            var adminId = HttpContext.Session.GetInt32("AdminId");
+            var department = HttpContext.Session.GetString("AdminDepartment");
+            var adminEmail = HttpContext.Session.GetString("AdminEmail");
+
+            if (adminId == null || !IsCSEDSDepartment(department))
+            {
+                return Json(new { success = false, message = "Unauthorized access. CSEDS department only." });
+            }
+
+            if (request == null || request.Year < 1 || request.Year > 4)
+            {
+                return Json(new { success = false, message = "Invalid year specified" });
+            }
+
+            try
+            {
+                // Find or create schedule for this year
+                var schedule = await _context.FacultySelectionSchedules
+                    .FirstOrDefaultAsync(s => s.Department == "CSEDS" && s.Year == request.Year);
+
+                if (schedule == null)
+                {
+                    // Create new schedule for this year
+                    schedule = new FacultySelectionSchedule
+                    {
+                        Department = "CSEDS",
+                        Year = request.Year,
+                        IsEnabled = request.IsEnabled,
+                        UseSchedule = false,
+                        DisabledMessage = $"Faculty selection for Year {request.Year} is currently disabled. Please contact your administrator.",
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now,
+                        UpdatedBy = adminEmail ?? "System"
+                    };
+                    _context.FacultySelectionSchedules.Add(schedule);
+                }
+                else
+                {
+                    // Update existing schedule
+                    schedule.IsEnabled = request.IsEnabled;
+                    schedule.UpdatedAt = DateTime.Now;
+                    schedule.UpdatedBy = adminEmail ?? "System";
+                    _context.Entry(schedule).State = EntityState.Modified;
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Get affected students count
+                using var csedsContext = _dbFactory.GetContext("CSEDS");
+                
+                // Convert year number to Roman numeral format used in database
+                string[] romanYears = { "", "I Year", "II Year", "III Year", "IV Year" };
+                var yearString = request.Year >= 1 && request.Year <= 4 ? romanYears[request.Year] : request.Year.ToString();
+                var yearNumericString = request.Year.ToString();
+                
+                var affectedStudentsCount = await csedsContext.Students
+                    .Where(s => s.Year == yearString || s.Year == yearNumericString)
+                    .CountAsync();
+
+                // Send notification
+                await _signalRService.NotifyUserActivity(
+                    adminEmail ?? "",
+                    "Admin",
+                    $"Year {request.Year} Schedule Updated",
+                    $"Faculty selection for Year {request.Year} {(request.IsEnabled ? "ENABLED" : "DISABLED")} by {adminEmail} - Affects {affectedStudentsCount} students"
+                );
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Year {request.Year} faculty selection {(request.IsEnabled ? "enabled" : "disabled")} successfully! Affects {affectedStudentsCount} students.",
+                    data = new
+                    {
+                        year = request.Year,
+                        isEnabled = schedule.IsEnabled,
+                        affectedStudents = affectedStudentsCount,
+                        updatedAt = schedule.UpdatedAt
+                    }
                 });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating year schedule: {ex.Message}");
+                return Json(new { success = false, message = $"Error updating schedule: {ex.Message}" });
             }
         }
     }
 
     /// <summary>
-    /// Request model for student filtering
+    /// Request model for filtering students
     /// </summary>
     public class StudentFilterRequest
     {
@@ -953,5 +1666,15 @@ namespace TutorLiveMentor.Controllers
         public DateTime? StartDateTime { get; set; }
         public DateTime? EndDateTime { get; set; }
         public string? DisabledMessage { get; set; }
+    }
+
+    /// <summary>
+    /// Request model for year-specific schedule update
+    /// </summary>
+    public class YearScheduleUpdateRequest
+    {
+        public string Department { get; set; } = string.Empty;
+        public int Year { get; set; }
+        public bool IsEnabled { get; set; }
     }
 }

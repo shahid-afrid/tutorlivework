@@ -34,7 +34,7 @@ ORDER BY ORDINAL_POSITION;
 "@
 
 try {
-    $columns = sqlcmd -S "(localdb)\MSSQLLocalDB" -d TutorLiveDB -Q $schemaCheck -h -1 -W
+    $columns = sqlcmd -S "localhost" -d "Working5Db" -Q $schemaCheck -h -1 -W
     
     if ($columns -match "MaxEnrollments") {
         Write-Host "? MaxEnrollments column EXISTS in database!" -ForegroundColor Green
@@ -64,7 +64,7 @@ ORDER BY
     s.Name;
 "@
         
-        $results = sqlcmd -S "(localdb)\MSSQLLocalDB" -d TutorLiveDB -Q $limitCheck
+        $results = sqlcmd -S "localhost" -d "Working5Db" -Q $limitCheck
         Write-Host $results
         Write-Host ""
         
@@ -77,11 +77,11 @@ WHERE Year = 2
   AND MaxEnrollments IS NULL;
 "@
         
-        $missing = sqlcmd -S "(localdb)\MSSQLLocalDB" -d TutorLiveDB -Q $missingLimits -h -1 -W
+        $missing = sqlcmd -S "localhost" -d "Working5Db" -Q $missingLimits -h -1 -W
         $missingCount = [int]($missing -replace '\s+','')
         
         if ($missingCount -gt 0) {
-            Write-Host "??  WARNING: $missingCount Year 2 subjects are missing MaxEnrollments!" -ForegroundColor Yellow
+            Write-Host "?  WARNING: $missingCount Year 2 subjects are missing MaxEnrollments!" -ForegroundColor Yellow
             Write-Host ""
             Write-Host "   Run this SQL to fix it:" -ForegroundColor Yellow
             Write-Host "   UPDATE Subjects SET MaxEnrollments = 60 WHERE Year = 2 AND SubjectType = 'Core';" -ForegroundColor White
@@ -100,11 +100,11 @@ WHERE Year = 2
   AND MaxEnrollments != 60;
 "@
         
-        $wrong = sqlcmd -S "(localdb)\MSSQLLocalDB" -d TutorLiveDB -Q $wrongLimit -h -1 -W
+        $wrong = sqlcmd -S "localhost" -d "Working5Db" -Q $wrongLimit -h -1 -W
         $wrongCount = [int]($wrong -replace '\s+','')
         
         if ($wrongCount -gt 0) {
-            Write-Host "??  WARNING: $wrongCount Year 2 subjects have WRONG limit (should be 60)!" -ForegroundColor Yellow
+            Write-Host "?  WARNING: $wrongCount Year 2 subjects have WRONG limit (should be 60)!" -ForegroundColor Yellow
             Write-Host ""
             Write-Host "   Run this SQL to fix it:" -ForegroundColor Yellow
             Write-Host "   UPDATE Subjects SET MaxEnrollments = 60 WHERE Year = 2 AND SubjectType = 'Core';" -ForegroundColor White

@@ -113,14 +113,49 @@ namespace TutorLiveMentor.Controllers
             if (facultyId == null) return RedirectToAction("Login");
 
             var faculty = _context.Faculties.FirstOrDefault(f => f.FacultyId == facultyId.Value);
-            return View(faculty);
+            if (faculty == null) return RedirectToAction("Login");
+
+            // Map Faculty to FacultyEditProfileViewModel
+            var viewModel = new FacultyEditProfileViewModel
+            {
+                FacultyId = faculty.FacultyId,
+                Name = faculty.Name,
+                Email = faculty.Email,
+                Department = faculty.Department
+            };
+
+            return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditProfile(Faculty model)
+        public async Task<IActionResult> EditProfile(FacultyEditProfileViewModel model)
         {
             var facultyId = HttpContext.Session.GetInt32("FacultyId");
             if (facultyId == null) return RedirectToAction("Login");
+
+            // Ensure the model ID matches the logged-in faculty's ID
+            if (model.FacultyId != facultyId.Value)
+            {
+                return BadRequest();
+            }
+
+            // Custom validation for password change
+            if (!string.IsNullOrEmpty(model.CurrentPassword) || !string.IsNullOrEmpty(model.NewPassword) || !string.IsNullOrEmpty(model.ConfirmPassword))
+            {
+                // If any password field is filled, all three must be filled
+                if (string.IsNullOrEmpty(model.CurrentPassword))
+                {
+                    ModelState.AddModelError("CurrentPassword", "Current password is required to change password");
+                }
+                if (string.IsNullOrEmpty(model.NewPassword))
+                {
+                    ModelState.AddModelError("NewPassword", "New password is required");
+                }
+                if (string.IsNullOrEmpty(model.ConfirmPassword))
+                {
+                    ModelState.AddModelError("ConfirmPassword", "Please confirm your new password");
+                }
+            }
 
             if (!ModelState.IsValid)
             {
@@ -133,16 +168,26 @@ namespace TutorLiveMentor.Controllers
                 return RedirectToAction("Profile");
             }
 
-            // Ensure the model ID matches the logged-in faculty's ID
-            if (model.FacultyId != facultyId.Value)
-            {
-                return BadRequest();
-            }
-
-            // Update properties including the new Department field
+            // Update basic profile properties
             faculty.Name = model.Name;
             faculty.Email = model.Email;
             faculty.Department = model.Department;
+
+            // Handle password change if requested
+            bool passwordChanged = false;
+            if (!string.IsNullOrEmpty(model.CurrentPassword))
+            {
+                // Verify current password
+                if (faculty.Password != model.CurrentPassword)
+                {
+                    ModelState.AddModelError("CurrentPassword", "Current password is incorrect");
+                    return View(model);
+                }
+
+                // Update to new password
+                faculty.Password = model.NewPassword!;
+                passwordChanged = true;
+            }
 
             _context.SaveChanges();
 
@@ -150,9 +195,15 @@ namespace TutorLiveMentor.Controllers
             HttpContext.Session.SetString("FacultyDepartment", faculty.Department);
 
             // 🚀 REAL-TIME NOTIFICATION: Notify system of profile update
-            await _signalRService.NotifyUserActivity(faculty.Name, "Faculty", "Profile Updated", $"Faculty member updated their profile information");
+            string activityMessage = passwordChanged 
+                ? "Faculty member updated profile and changed password" 
+                : "Faculty member updated profile information";
+            await _signalRService.NotifyUserActivity(faculty.Name, "Faculty", "Profile Updated", activityMessage);
 
-            TempData["SuccessMessage"] = "Profile updated successfully!";
+            TempData["SuccessMessage"] = passwordChanged 
+                ? "Profile and password updated successfully!" 
+                : "Profile updated successfully!";
+            
             return RedirectToAction("Profile");
         }
 

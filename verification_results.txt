@@ -1,0 +1,18 @@
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 39
+Invalid column name 'Department'.
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 34
+Invalid column name 'Department'.
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 36
+Invalid column name 'SubjectId'.
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 50
+Invalid column name 'Department'.
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 45
+Invalid column name 'Department'.
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 47
+Invalid column name 'FacultyId'.
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 286
+Invalid column name 'Department'.
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 288
+Invalid column name 'Department'.
+Msg 207, Level 16, State 1, Server Shahid\LOCALDB#0F2A3C58, Line 332
+Invalid column name 'Department'.

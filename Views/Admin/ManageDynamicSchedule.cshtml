@@ -1,0 +1,632 @@
+@model TutorLiveMentor.Models.FacultySelectionScheduleViewModel
+@{
+    ViewData["Title"] = "Faculty Selection Schedule - @ViewBag.DepartmentName";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Faculty Selection Schedule - @ViewBag.DepartmentName Department</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --royal-blue: #274060;
+            --warm-gold: #FFC857;
+            --cream: #F9FAF2;
+            --slate: #CED3DC;
+            --card-shadow: rgba(39,64,96,0.13);
+            --success-green: #28a745;
+            --error-red: #dc3545;
+            --cseds-purple: #6f42c1;
+            --cseds-teal: #20c997;
+            --year1-color: #e74c3c;
+            --year2-color: #3498db;
+            --year3-color: #2ecc71;
+            --year4-color: #f39c12;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: linear-gradient(rgba(249, 250, 242, 0.15), rgba(255, 200, 87, 0.10)),
+            url('@Url.Content("~/images/RGMCET-BACKGROUND.jpg")') center center/cover no-repeat fixed;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header-section {
+            background: rgba(249,250,242,0.95);
+            box-shadow: 0 8px 32px var(--card-shadow);
+            border-radius: 20px;
+            padding: 30px 40px;
+            backdrop-filter: blur(12px);
+            margin-bottom: 30px;
+            border: 2px solid var(--slate);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--success-green), var(--cseds-teal));
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 70px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--success-green);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(36px);
+        }
+
+        .year-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 3px solid;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .year-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .year-card.year1 { border-color: var(--year1-color); }
+        .year-card.year2 { border-color: var(--year2-color); }
+        .year-card.year3 { border-color: var(--year3-color); }
+        .year-card.year4 { border-color: var(--year4-color); }
+
+        .year-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .year-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .year-title .year-icon {
+            font-size: 1.2em;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .year1 .year-icon { background: var(--year1-color); }
+        .year2 .year-icon { background: var(--year2-color); }
+        .year3 .year-icon { background: var(--year3-color); }
+        .year4 .year-icon { background: var(--year4-color); }
+
+        .year-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, rgba(39,64,96,0.05), rgba(111,66,193,0.05));
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--royal-blue);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .alert {
+            padding: 20px 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.05em;
+            font-weight: 600;
+            animation: slideDown 0.4s ease-out;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-width: 3px;
+            border-style: solid;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.95), rgba(32, 201, 151, 0.95));
+            border-color: #1e7e34;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert-success i {
+            font-size: 1.8em;
+            color: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.95), rgba(255, 82, 82, 0.95));
+            border-color: #bd2130;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert-danger i {
+            font-size: 1.8em;
+            color: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .alert-content {
+            flex: 1;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .alert-close {
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+            font-size: 1.5em;
+            padding: 0 8px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+    
+        /* App Footer Styling */
+        .app-footer {
+            background: rgba(249,250,242,0.95);
+            backdrop-filter: blur(12px);
+            border-top: 3px solid var(--slate, #CED3DC);
+            box-shadow: 0 -8px 32px rgba(39,64,96,0.13);
+            padding: 30px 20px;
+            margin-top: 50px;
+            text-align: center;
+            font-family: 'Montserrat', Arial, sans-serif;
+            color: #274060;
+            position: relative;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-line {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .footer-line.guidance { font-size: 1em; font-weight: 600; color: #444;
+            margin-bottom: 12px;
+        }
+
+        .footer-line.team {
+            font-size: 0.95em;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .footer-line.copyright {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #274060;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(39,64,96,0.1);
+        }
+
+        .footer-highlight { color: #274060;
+            font-weight: 700;
+        }
+
+        .footer-name { color: #274060;
+            font-weight: 600;
+        }
+
+        @@media (max-width: 768px) {
+            .year-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-footer {
+                padding: 20px 15px;
+                margin-top: 30px;
+            }
+
+            .footer-line.guidance {
+                font-size: 0.9em;
+            }
+
+            .footer-line.team {
+                font-size: 0.85em;
+            }
+
+            .footer-line.copyright {
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    @Html.AntiForgeryToken()
+    <div class="main-container">
+        <div class="header-section">
+            <h1><i class="fas fa-clock"></i> Faculty Selection Schedule - @Model.Department</h1>
+            <p style="color:#666;margin:10px 0 20px 0;">Control faculty selection availability by year</p>
+            <a href="@Url.Action("DynamicDashboard", "Admin", new { department = ViewBag.DepartmentCode })" class="btn-primary" style="display:inline-block;text-decoration:none;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Year 1 Card -->
+        <div class="year-card year1">
+            <div class="year-header">
+                <div class="year-title">
+                    <span class="year-icon"><i class="fas fa-1"></i></span>
+                    <span>Year 1 Students</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="year-toggle" data-year="1" id="year1Toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="year-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="year1Students">-</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year1Subjects">-</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year1Enrollments">-</div>
+                    <div class="stat-label">Enrollments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Year 2 Card -->
+        <div class="year-card year2">
+            <div class="year-header">
+                <div class="year-title">
+                    <span class="year-icon"><i class="fas fa-2"></i></span>
+                    <span>Year 2 Students</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="year-toggle" data-year="2" id="year2Toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="year-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="year2Students">-</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year2Subjects">-</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year2Enrollments">-</div>
+                    <div class="stat-label">Enrollments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Year 3 Card -->
+        <div class="year-card year3">
+            <div class="year-header">
+                <div class="year-title">
+                    <span class="year-icon"><i class="fas fa-3"></i></span>
+                    <span>Year 3 Students</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="year-toggle" data-year="3" id="year3Toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="year-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="year3Students">-</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year3Subjects">-</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year3Enrollments">-</div>
+                    <div class="stat-label">Enrollments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Year 4 Card -->
+        <div class="year-card year4">
+            <div class="year-header">
+                <div class="year-title">
+                    <span class="year-icon"><i class="fas fa-4"></i></span>
+                    <span>Year 4 Students</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="year-toggle" data-year="4" id="year4Toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="year-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="year4Students">-</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year4Subjects">-</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year4Enrollments">-</div>
+                    <div class="stat-label">Enrollments</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script>
+        console.log('?? PAGE LOADING...');
+        console.log('? jQuery loaded?', typeof jQuery !== 'undefined');
+
+        const departmentCode = '@ViewBag.DepartmentCode';
+        const departmentName = '@ViewBag.DepartmentName';
+
+        // Load current schedule states and statistics
+        $(document).ready(function() {
+            loadScheduleStates();
+            loadYearStatistics();
+        });
+
+        // Load schedule states for all years
+        function loadScheduleStates() {
+            $.ajax({
+                url: '@Url.Action("GetDynamicYearSchedules", "Admin")',
+                type: 'GET',
+                data: { department: departmentCode },
+                success: function(response) {
+                    console.log('?? Schedule states loaded:', response);
+                    if (response.success) {
+                        response.schedules.forEach(function(schedule) {
+                            $(`#year${schedule.year}Toggle`).prop('checked', schedule.isEnabled);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('? Failed to load schedule states:', xhr);
+                }
+            });
+        }
+
+        // Load year-specific statistics
+        function loadYearStatistics() {
+            for (let year = 1; year <= 4; year++) {
+                $.ajax({
+                    url: '@Url.Action("GetDynamicYearStatistics", "Admin")',
+                    type: 'GET',
+                    data: { department: departmentCode, year: year },
+                    success: function(response) {
+                        if (response.success) {
+                            $(`#year${year}Students`).text(response.studentsCount);
+                            $(`#year${year}Subjects`).text(response.subjectsCount);
+                            $(`#year${year}Enrollments`).text(response.enrollmentsCount);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Handle toggle change
+        $('.year-toggle').on('change', function() {
+            const year = $(this).data('year');
+            const isEnabled = $(this).is(':checked');
+            
+            console.log(`?? Toggling Year ${year}: ${isEnabled ? 'ENABLE' : 'DISABLE'}`);
+
+            if (!confirm(`Are you sure you want to ${isEnabled ? 'ENABLE' : 'DISABLE'} faculty selection for Year ${year} students?`)) {
+                // Revert toggle if cancelled
+                $(this).prop('checked', !isEnabled);
+                return;
+            }
+
+            // Get token
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            if (!token) {
+                alert('Security token missing! Refresh the page.');
+                $(this).prop('checked', !isEnabled);
+                return;
+            }
+
+            // Disable toggle during save
+            $(this).prop('disabled', true);
+
+            // AJAX request
+            $.ajax({
+                url: '@Url.Action("UpdateDynamicYearSchedule", "Admin")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    Department: departmentCode,
+                    Year: year,
+                    IsEnabled: isEnabled
+                }),
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                success: function(response) {
+                    console.log('? SUCCESS!', response);
+                    if (response.success) {
+                        $('#alertContainer').html(
+                            '<div class="alert alert-success">' +
+                            '<i class="fas fa-check-circle"></i> ' +
+                            '<div class="alert-content">' + response.message + '</div>' +
+                            '<span class="alert-close" onclick="this.parentElement.remove()">×</span>' +
+                            '</div>'
+                        );
+                        setTimeout(function() {
+                            $('#alertContainer').empty();
+                        }, 3000);
+                    } else {
+                        $('#alertContainer').html(
+                            '<div class="alert alert-danger">' +
+                            '<i class="fas fa-exclamation-circle"></i> ' +
+                            '<div class="alert-content">' + response.message + '</div>' +
+                            '<span class="alert-close" onclick="this.parentElement.remove()">×</span>' +
+                            '</div>'
+                        );
+                        // Revert toggle on failure
+                        $(`#year${year}Toggle`).prop('checked', !isEnabled);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('? ERROR!', xhr);
+                    $('#alertContainer').html(
+                        '<div class="alert alert-danger">' +
+                        '<i class="fas fa-exclamation-triangle"></i> ' +
+                        '<div class="alert-content">Failed to update schedule. Please try again.</div>' +
+                        '<span class="alert-close" onclick="this.parentElement.remove()">×</span>' +
+                        '</div>'
+                    );
+                    // Revert toggle on error
+                    $(`#year${year}Toggle`).prop('checked', !isEnabled);
+                },
+                complete: function() {
+                    // Re-enable toggle
+                    $(`#year${year}Toggle`).prop('disabled', false);
+                }
+            });
+        });
+
+        console.log('? Script loaded successfully!');
+    </script>
+
+    <footer class="app-footer">
+        <div class="footer-content">
+            <div class="footer-line guidance">
+                Developed under the guidance of <span class="footer-highlight">Dr. P. Penchala Prasad</span>, Associate Professor, CSE(DS), RGMCET
+            </div>
+            <div class="footer-line team">
+                With team <span class="footer-name">Mr. S. Md. Shahid Afrid</span> (23091A32D4) & <span class="footer-name">Ms. G. Veena</span> (23091A32H9)
+            </div>
+            <div class="footer-line copyright">
+                &copy; All Rights Reserved @@2025
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -17,6 +17,11 @@ namespace TutorLiveMentor.Models
         public string Department { get; set; } = string.Empty;
 
         /// <summary>
+        /// Year (1, 2, 3, 4) - null means applies to all years
+        /// </summary>
+        public int? Year { get; set; }
+
+        /// <summary>
         /// Master toggle - if false, faculty selection is completely disabled
         /// </summary>
         public bool IsEnabled { get; set; } = true;

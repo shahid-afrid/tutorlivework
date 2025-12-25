@@ -507,6 +507,7 @@ namespace TutorLiveMentor.Models
         public string RegdNumber { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Year { get; set; } = string.Empty;
+        public string Semester { get; set; } = string.Empty;
         public string Department { get; set; } = string.Empty;
         public List<EnrolledSubjectInfo> EnrolledSubjects { get; set; } = new List<EnrolledSubjectInfo>();
         public int TotalEnrollments { get; set; }
@@ -555,6 +556,9 @@ namespace TutorLiveMentor.Models
 
         [Required(ErrorMessage = "Year is required")]
         public string Year { get; set; } = string.Empty;
+
+        // Semester (optional, can be I, II, III, IV, etc.)
+        public string Semester { get; set; } = string.Empty;
 
         // Department is automatically set to CSE(DS)
         public string Department { get; set; } = "CSE(DS)";

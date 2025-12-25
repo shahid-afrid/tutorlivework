@@ -1,4 +1,4 @@
-ï»¿@model TutorLiveMentor.Models.FacultySelectionScheduleViewModel
+@model TutorLiveMentor.Models.FacultySelectionScheduleViewModel
 @{
     ViewData["Title"] = "Faculty Selection Schedule - CSEDS";
     Layout = null;
@@ -24,6 +24,10 @@
             --error-red: #dc3545;
             --cseds-purple: #6f42c1;
             --cseds-teal: #20c997;
+            --year1-color: #e74c3c;
+            --year2-color: #3498db;
+            --year3-color: #2ecc71;
+            --year4-color: #f39c12;
         }
 
         body {
@@ -118,6 +122,84 @@
 
         input:checked + .toggle-slider:before {
             transform: translateX(36px);
+        }
+
+        .year-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 3px solid;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .year-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .year-card.year1 { border-color: var(--year1-color); }
+        .year-card.year2 { border-color: var(--year2-color); }
+        .year-card.year3 { border-color: var(--year3-color); }
+        .year-card.year4 { border-color: var(--year4-color); }
+
+        .year-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .year-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .year-title .year-icon {
+            font-size: 1.2em;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .year1 .year-icon { background: var(--year1-color); }
+        .year2 .year-icon { background: var(--year2-color); }
+        .year3 .year-icon { background: var(--year3-color); }
+        .year4 .year-icon { background: var(--year4-color); }
+
+        .year-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, rgba(39,64,96,0.05), rgba(111,66,193,0.05));
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--royal-blue);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
         }
 
         .alert {
@@ -247,6 +329,10 @@
         }
 
         @@media (max-width: 768px) {
+            .year-stats {
+                grid-template-columns: 1fr;
+            }
+            
             .app-footer {
                 padding: 20px 15px;
                 margin-top: 30px;
@@ -271,40 +357,123 @@
     <div class="main-container">
         <div class="header-section">
             <h1><i class="fas fa-clock"></i> Faculty Selection Schedule - @Model.Department</h1>
+            <p style="color:#666;margin:10px 0 20px 0;">Control faculty selection availability by year</p>
             <a href="@Url.Action("CSEDSDashboard", "Admin")" class="btn-primary" style="display:inline-block;text-decoration:none;">
-                <i class="fas fa-arrow-left"></i> Back
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
         </div>
 
         <div id="alertContainer"></div>
 
-        <div class="header-section">
-            <h4>Master Control</h4>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:20px;background:rgba(111,66,193,0.05);border-radius:15px;">
-                <div>
-                    <h5 style="margin:0;">Faculty Selection</h5>
-                    <p style="margin:0;color:#666;">Toggle to enable or disable faculty selection</p>
+        <!-- Year 1 Card -->
+        <div class="year-card year1">
+            <div class="year-header">
+                <div class="year-title">
+                    <span class="year-icon"><i class="fas fa-1"></i></span>
+                    <span>Year 1 Students</span>
                 </div>
                 <label class="toggle-switch">
-                    <input type="checkbox" id="isEnabledToggle" @(Model.IsEnabled ? "checked" : "")>
+                    <input type="checkbox" class="year-toggle" data-year="1" id="year1Toggle">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
-
-            <div style="margin-top:20px;">
-                <label for="disabledMessage" style="display:block;font-weight:600;margin-bottom:10px;">
-                    Disabled Message (10-500 characters)
-                </label>
-                <textarea id="disabledMessage" style="width:100%;padding:12px;border:2px solid var(--slate);border-radius:12px;font-family:Montserrat;min-height:100px;" maxlength="500">@Model.DisabledMessage</textarea>
-                <small style="color:#666;">
-                    <span id="charCount">@Model.DisabledMessage.Length</span> / 500 characters
-                </small>
+            <div class="year-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="year1Students">-</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year1Subjects">-</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year1Enrollments">-</div>
+                    <div class="stat-label">Enrollments</div>
+                </div>
             </div>
+        </div>
 
-            <div style="margin-top:30px;">
-                <button type="button" class="btn-primary" id="saveBtn">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
+        <!-- Year 2 Card -->
+        <div class="year-card year2">
+            <div class="year-header">
+                <div class="year-title">
+                    <span class="year-icon"><i class="fas fa-2"></i></span>
+                    <span>Year 2 Students</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="year-toggle" data-year="2" id="year2Toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="year-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="year2Students">-</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year2Subjects">-</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year2Enrollments">-</div>
+                    <div class="stat-label">Enrollments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Year 3 Card -->
+        <div class="year-card year3">
+            <div class="year-header">
+                <div class="year-title">
+                    <span class="year-icon"><i class="fas fa-3"></i></span>
+                    <span>Year 3 Students</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="year-toggle" data-year="3" id="year3Toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="year-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="year3Students">-</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year3Subjects">-</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year3Enrollments">-</div>
+                    <div class="stat-label">Enrollments</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Year 4 Card -->
+        <div class="year-card year4">
+            <div class="year-header">
+                <div class="year-title">
+                    <span class="year-icon"><i class="fas fa-4"></i></span>
+                    <span>Year 4 Students</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="year-toggle" data-year="4" id="year4Toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="year-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="year4Students">-</div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year4Subjects">-</div>
+                    <div class="stat-label">Subjects</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="year4Enrollments">-</div>
+                    <div class="stat-label">Enrollments</div>
+                </div>
             </div>
         </div>
     </div>
@@ -312,30 +481,62 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script>
-        console.log('? PAGE LOADING...');
+        console.log('?? PAGE LOADING...');
         console.log('? jQuery loaded?', typeof jQuery !== 'undefined');
 
-        // Character counter
-        $('#disabledMessage').on('input', function() {
-            $('#charCount').text($(this).val().length);
+        // Load current schedule states and statistics
+        $(document).ready(function() {
+            loadScheduleStates();
+            loadYearStatistics();
         });
 
-        // Save button
-        $('#saveBtn').on('click', function() {
-            console.log('? BUTTON CLICKED!');
-            
-            const isEnabled = $('#isEnabledToggle').is(':checked');
-            const disabledMessage = $('#disabledMessage').val().trim();
+        // Load schedule states for all years
+        function loadScheduleStates() {
+            $.ajax({
+                url: '@Url.Action("GetYearSchedules", "Admin")',
+                type: 'GET',
+                success: function(response) {
+                    console.log('?? Schedule states loaded:', response);
+                    if (response.success) {
+                        response.schedules.forEach(function(schedule) {
+                            $(`#year${schedule.year}Toggle`).prop('checked', schedule.isEnabled);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    console.error('? Failed to load schedule states:', xhr);
+                }
+            });
+        }
 
-            console.log('Data:', { isEnabled, disabledMessage });
-
-            // Validation
-            if (disabledMessage.length < 10) {
-                alert('Message must be at least 10 characters. Current: ' + disabledMessage.length);
-                return;
+        // Load year-specific statistics
+        function loadYearStatistics() {
+            for (let year = 1; year <= 4; year++) {
+                $.ajax({
+                    url: '@Url.Action("GetYearStatistics", "Admin")',
+                    type: 'GET',
+                    data: { year: year },
+                    success: function(response) {
+                        if (response.success) {
+                            $(`#year${year}Students`).text(response.studentsCount);
+                            $(`#year${year}Subjects`).text(response.subjectsCount);
+                            $(`#year${year}Enrollments`).text(response.enrollmentsCount);
+                        }
+                    }
+                });
             }
+        }
 
-            if (!confirm('Are you sure you want to ' + (isEnabled ? 'ENABLE' : 'DISABLE') + ' faculty selection?')) {
+        // Handle toggle change
+        $('.year-toggle').on('change', function() {
+            const year = $(this).data('year');
+            const isEnabled = $(this).is(':checked');
+            
+            console.log(`?? Toggling Year ${year}: ${isEnabled ? 'ENABLE' : 'DISABLE'}`);
+
+            if (!confirm(`Are you sure you want to ${isEnabled ? 'ENABLE' : 'DISABLE'} faculty selection for Year ${year} students?`)) {
+                // Revert toggle if cancelled
+                $(this).prop('checked', !isEnabled);
                 return;
             }
 
@@ -343,28 +544,22 @@
             const token = $('input[name="__RequestVerificationToken"]').val();
             if (!token) {
                 alert('Security token missing! Refresh the page.');
+                $(this).prop('checked', !isEnabled);
                 return;
             }
 
-            console.log('? Sending AJAX request...');
-
-            // Disable button
-            const btn = $(this);
-            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+            // Disable toggle during save
+            $(this).prop('disabled', true);
 
             // AJAX request
             $.ajax({
-                url: '@Url.Action("UpdateFacultySelectionSchedule", "Admin")',
+                url: '@Url.Action("UpdateYearSchedule", "Admin")',
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    ScheduleId: @Model.ScheduleId,
-                    Department: '@Model.Department',
-                    IsEnabled: isEnabled,
-                    UseSchedule: false,
-                    StartDateTime: null,
-                    EndDateTime: null,
-                    DisabledMessage: disabledMessage
+                    Department: "@Model.Department",
+                    Year: year,
+                    IsEnabled: isEnabled
                 }),
                 headers: {
                     'RequestVerificationToken': token
@@ -376,21 +571,22 @@
                             '<div class="alert alert-success">' +
                             '<i class="fas fa-check-circle"></i> ' +
                             '<div class="alert-content">' + response.message + '</div>' +
-                            '<span class="alert-close" onclick="this.parentElement.remove()">ï¿½</span>' +
+                            '<span class="alert-close" onclick="this.parentElement.remove()">×</span>' +
                             '</div>'
                         );
                         setTimeout(function() {
-                            location.reload();
-                        }, 2000);
+                            $('#alertContainer').empty();
+                        }, 3000);
                     } else {
                         $('#alertContainer').html(
                             '<div class="alert alert-danger">' +
                             '<i class="fas fa-exclamation-circle"></i> ' +
                             '<div class="alert-content">' + response.message + '</div>' +
-                            '<span class="alert-close" onclick="this.parentElement.remove()">ï¿½</span>' +
+                            '<span class="alert-close" onclick="this.parentElement.remove()">×</span>' +
                             '</div>'
                         );
-                        btn.prop('disabled', false).html('<i class="fas fa-save"></i> Save Changes');
+                        // Revert toggle on failure
+                        $(`#year${year}Toggle`).prop('checked', !isEnabled);
                     }
                 },
                 error: function(xhr) {
@@ -398,11 +594,16 @@
                     $('#alertContainer').html(
                         '<div class="alert alert-danger">' +
                         '<i class="fas fa-exclamation-triangle"></i> ' +
-                        '<div class="alert-content">Failed to save changes. Status: ' + xhr.status + '. Please try again.</div>' +
-                        '<span class="alert-close" onclick="this.parentElement.remove()">ï¿½</span>' +
+                        '<div class="alert-content">Failed to update schedule. Please try again.</div>' +
+                        '<span class="alert-close" onclick="this.parentElement.remove()">×</span>' +
                         '</div>'
                     );
-                    btn.prop('disabled', false).html('<i class="fas fa-save"></i> Save Changes');
+                    // Revert toggle on error
+                    $(`#year${year}Toggle`).prop('checked', !isEnabled);
+                },
+                complete: function() {
+                    // Re-enable toggle
+                    $(`#year${year}Toggle`).prop('disabled', false);
                 }
             });
         });

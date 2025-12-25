@@ -24,6 +24,8 @@
             --success-green: #28a745;
             --error-red: #dc3545;
             --faculty-purple: #6f42c1;
+            --cseds-purple: #6f42c1;
+            --cseds-teal: #20c997;
         }
 
         body {
@@ -142,7 +144,7 @@
         .profile-avatar {
             width: 100px;
             height: 100px;
-            background: linear-gradient(135deg, var(--faculty-purple), var(--warm-gold));
+            background: linear-gradient(135deg, var(--cseds-purple), var(--cseds-teal));
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -178,7 +180,7 @@
             padding: 15px;
             background: rgba(255, 255, 255, 0.5);
             border-radius: 10px;
-            border-left: 4px solid var(--faculty-purple);
+            border-left: 4px solid var(--cseds-purple);
             transition: all 0.3s ease;
         }
 
@@ -190,6 +192,7 @@
         .detail-icon {
             font-size: 1.5em;
             margin-right: 15px;
+            color: var(--cseds-purple);
         }
 
         .detail-content {
@@ -219,28 +222,29 @@
             margin-top: 30px;
         }
 
+        /* CSEDS-Style Buttons - Exact Match */
         .glass-btn {
-            background: linear-gradient(135deg, var(--faculty-purple) 0%, var(--warm-gold) 100%);
+            background: linear-gradient(135deg, var(--cseds-purple) 0%, var(--cseds-teal) 100%);
             color: white;
             border: none;
             border-radius: 25px;
-            padding: 15px 30px;
-            font-size: 1.1em;
+            padding: 12px 25px;
+            font-size: 1em;
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 8px 25px var(--card-shadow);
+            box-shadow: 0 6px 20px var(--card-shadow);
             border: 2px solid transparent;
             transition: all 0.3s ease;
         }
 
         .glass-btn:hover {
-            background: linear-gradient(135deg, var(--warm-gold) 0%, var(--faculty-purple) 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(111, 66, 193, 0.4);
+            background: linear-gradient(135deg, var(--cseds-teal) 0%, var(--cseds-purple) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(111, 66, 193, 0.4);
             text-decoration: none;
             color: white;
         }
@@ -251,6 +255,15 @@
 
         .glass-btn.secondary:hover {
             background: linear-gradient(135deg, #95a5a6 0%, var(--slate) 100%);
+        }
+
+        .glass-btn.logout {
+            background: linear-gradient(135deg, #dc3545, #c0392b);
+        }
+
+        .glass-btn.logout:hover {
+            background: linear-gradient(135deg, #c0392b, #dc3545);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
         }
 
         @@media (max-width: 768px) {
@@ -423,6 +436,14 @@
                 </div>
 
                 <div class="detail-row">
+                    <div class="detail-icon"><i class="fas fa-building"></i></div>
+                    <div class="detail-content">
+                        <div class="detail-label">Department</div>
+                        <div class="detail-value">@Model.Department</div>
+                    </div>
+                </div>
+
+                <div class="detail-row">
                     <div class="detail-icon"><i class="fas fa-id-card"></i></div>
                     <div class="detail-content">
                         <div class="detail-label">Faculty ID</div>
@@ -446,7 +467,7 @@
                 <a href="@Url.Action("MainDashboard", "Faculty")" class="glass-btn secondary">
                     <i class="fas fa-tachometer-alt"></i> Main Dashboard
                 </a>
-                <a href="@Url.Action("Logout", "Faculty")" class="glass-btn secondary">
+                <a href="@Url.Action("Logout", "Faculty")" class="glass-btn logout">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </div>

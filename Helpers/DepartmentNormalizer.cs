@@ -4,21 +4,26 @@ namespace TutorLiveMentor.Helpers
 {
     /// <summary>
     /// Helper class to normalize department names and prevent CSE(DS) vs CSEDS mismatch issues
+    /// IMPORTANT: ALL variations normalize to "CSEDS" (no parentheses, no spaces)
+    /// This is the ONLY format stored in the database.
     /// </summary>
     public static class DepartmentNormalizer
     {
         /// <summary>
         /// Normalizes department names to standard format
-        /// CSEDS, CSDS, CSE-DS, CSE (DS), CSE_DS, CSE DATA SCIENCE -> CSEDS (database format)
+        /// ALL CSE DATA SCIENCE VARIATIONS -> "CSEDS" (database standard)
+        /// Examples: CSE(DS), CSE (DS), CSDS, CSE-DS, CSE_DS, Cse(Ds) -> CSEDS
+        /// 
+        /// Other departments:
         /// CSE(AIML), CSEAIML, CSE-AIML -> CSE(AIML)
         /// CSE(CS), CSECS, CSE-CS -> CSE(CS)
         /// CSE(BS), CSEBS, CSE-BS -> CSE(BS)
         /// 
-        /// NOTE: We normalize to "CSEDS" (no parentheses) for consistent database storage.
-        /// The display name "CSE (Data Science)" is used in UI.
+        /// CRITICAL: Database stores "CSEDS" everywhere (Students, Faculties, Subjects, Admins, SubjectAssignments)
+        /// UI displays "CSE (Data Science)" using GetDisplayName()
         /// </summary>
         /// <param name="department">Raw department name from user input</param>
-        /// <returns>Normalized department name</returns>
+        /// <returns>Normalized department name (CSEDS for all Data Science variations)</returns>
         public static string Normalize(string department)
         {
             if (string.IsNullOrWhiteSpace(department))
@@ -29,13 +34,14 @@ namespace TutorLiveMentor.Helpers
             var upper = normalized.ToUpper();
 
             // ===== CSE DATA SCIENCE VARIANTS =====
-            // These should all map to "CSEDS" - the database storage format
-            // Handles: CSE(DS), CSEDS, CSE-DS, CSE (DS), CSE_DS, CSE DATA SCIENCE
+            // ALL variations map to "CSEDS" (the ONLY database format)
+            // Handles: CSE(DS), CSEDS, CSDS, CSE-DS, CSE (DS), CSE_DS, CSE DATA SCIENCE, Cse(Ds), cse(ds)
             if (upper == "CSEDS" || upper == "CSDS" || upper == "CSE-DS" || 
                 upper == "CSE (DS)" || upper == "CSEDATASCIENCE" ||
-                upper == "CSE DATA SCIENCE" || upper == "CSE_DS" || upper == "CSE(DS)")
+                upper == "CSE DATA SCIENCE" || upper == "CSE_DS" || upper == "CSE(DS)" ||
+                upper == "CSE(DS)" || upper == "Cse(Ds)".ToUpper())
             {
-                return "CSEDS";  // Use CSEDS as the standard normalized format
+                return "CSEDS";  // ONLY standard format - no parentheses, no spaces
             }
 
             // ===== CSE AI/ML VARIANTS =====

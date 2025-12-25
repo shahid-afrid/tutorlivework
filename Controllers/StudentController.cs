@@ -716,12 +716,11 @@ namespace TutorLiveMentor.Controllers
 
             Console.WriteLine("SelectSubject GET - Access granted, loading page");
 
-            // Get all available subjects for the student's year AND department
-            var yearMap = new Dictionary<string, int> { { "I", 1 }, { "II", 2 }, { "III", 3 }, { "IV", 4 } };
-            var studentYearKey = student.Year?.Replace(" Year", "")?.Trim() ?? "";
+            // Enhanced year parsing that handles BOTH formats
+            int studentYear = ParseStudentYear(student.Year);
             
             var availableSubjects = new List<AssignedSubject>();
-            if (yearMap.TryGetValue(studentYearKey, out int studentYear))
+            if (studentYear > 0)
             {
                 // Normalize student department first
                 var normalizedStudentDept = DepartmentNormalizer.Normalize(student.Department);
@@ -770,7 +769,7 @@ namespace TutorLiveMentor.Controllers
             }
             else
             {
-                Console.WriteLine($"SelectSubject GET - ERROR: Could not parse student year '{student.Year}' with key '{studentYearKey}'");
+                Console.WriteLine($"SelectSubject GET - ERROR: Could not parse student year '{student.Year}' (format not recognized)");
             }
 
             // Separate subjects by type
@@ -860,344 +859,50 @@ namespace TutorLiveMentor.Controllers
             return filtered;
         }
 
-        /*
-        [HttpGet]
-        public async Task<IActionResult> AssignedFaculty()
+        /// <summary>
+        /// Parse student year string to integer, handling BOTH formats:
+        /// - Roman numerals: "I Year", "II Year", "III Year", "IV Year" ? 1, 2, 3, 4
+        /// - Numeric: "1", "2", "3", "4" ? 1, 2, 3, 4
+        /// Returns 0 if format is invalid
+        /// </summary>
+        private int ParseStudentYear(string? yearString)
         {
-            var studentId = HttpContext.Session.GetInt32("StudentId");
-            if (studentId == null)
+            if (string.IsNullOrWhiteSpace(yearString))
             {
-                return RedirectToAction("Login");
+                Console.WriteLine("?? ParseStudentYear: Year string is null or empty");
+                return 0;
             }
 
-            var student = await _context.Students
-                .Include(s => s.Enrollments)
-                    .ThenInclude(e => e.AssignedSubject)
-                    .ThenInclude(asub => asub.Subject)
-                .Include(s => s.Enrollments)
-                    .ThenInclude(e => e.AssignedSubject)
-                    .ThenInclude(asub => asub.Faculty)
-                .FirstOrDefaultAsync(s => s.Id == studentId.Value);
-
-            if (student == null)
-            {
-                return NotFound();
-            }
-
-            return View(student);
-        }
-        */
-
-        [HttpGet]
-        [StudentAuthorize]
-        public async Task<IActionResult> ChangePassword()
-        {
-            var studentId = HttpContext.Session.GetString("StudentId");
-            if (string.IsNullOrEmpty(studentId))
-            {
-                return RedirectToAction("Login");
-            }
-
-            var student = await _context.Students.FindAsync(studentId);
-            if (student == null)
-            {
-                return NotFound();
-            }
-
-            var model = new ChangePasswordViewModel
-            {
-                StudentId = student.Id,
-                StudentName = student.FullName
-            };
-
-            return View(model);
-        }
-
-        [HttpPost]
-        [StudentAuthorize]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
-        {
-            var studentId = HttpContext.Session.GetString("StudentId");
-            if (string.IsNullOrEmpty(studentId))
-            {
-                return RedirectToAction("Login");
-            }
-
-            if (model.StudentId != studentId)
-            {
-                return BadRequest();
-            }
-
-            if (ModelState.IsValid)
-            {
-                var student = await _context.Students.FindAsync(studentId);
-                if (student == null)
-                {
-                    return NotFound();
-                }
-
-                // Verify current password
-                if (student.Password != model.CurrentPassword)
-                {
-                    ModelState.AddModelError("CurrentPassword", "Current password is incorrect.");
-                    return View(model);
-                }
-
-                // Update password
-                student.Password = model.NewPassword;
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Password changed successfully!";
-                return RedirectToAction("Dashboard");
-            }
-
-            return View(model);
-        }
-
-        [HttpGet]
-        public IActionResult TestEmoji()
-        {
-            // Simple test view to check emoji display
-            return View();
-        }
-
-        [HttpGet]
-        public IActionResult TestSession()
-        {
-            // Test session functionality
-            HttpContext.Session.SetString("TestKey", "TestValue");
-            var testValue = HttpContext.Session.GetString("TestKey");
+            // Remove " Year" suffix if present (handles "II Year" ? "II")
+            var yearKey = yearString.Replace(" Year", "").Trim();
             
-            var debugInfo = new
+            Console.WriteLine($"ParseStudentYear: Input='{yearString}' ? Key='{yearKey}'");
+
+            // Try Roman numerals first (case-insensitive)
+            var romanMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
             {
-                SessionId = HttpContext.Session.Id,
-                TestValue = testValue,
-                StudentId = HttpContext.Session.GetString("StudentId"), // Changed to string
-                SessionIsAvailable = HttpContext.Session.IsAvailable
+                { "I", 1 },
+                { "II", 2 },
+                { "III", 3 },
+                { "IV", 4 }
             };
             
-            return Json(debugInfo);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> TestLogin()
-        {
-            // Test login with a known student (for debugging)
-            var student = await _context.Students.FirstOrDefaultAsync();
-            if (student != null)
+            if (romanMap.TryGetValue(yearKey, out int romanYear))
             {
-                HttpContext.Session.SetString("StudentId", student.Id); // Changed to string
-                await HttpContext.Session.CommitAsync();
-                
-                return Json(new { 
-                    Message = "Test login successful", 
-                    StudentId = student.Id, 
-                    StudentName = student.FullName,
-                    SessionId = HttpContext.Session.Id
-                });
+                Console.WriteLine($"? ParseStudentYear: Matched Roman numeral '{yearKey}' ? {romanYear}");
+                return romanYear;
             }
-            
-            return Json(new { Message = "No students found in database" });
-        }
 
-        [HttpGet]
-        public async Task<IActionResult> DebugLogin()
-        {
-            try
+            // Try numeric format as fallback (handles "3" ? 3)
+            if (int.TryParse(yearKey, out int numericYear) && numericYear >= 1 && numericYear <= 4)
             {
-                // Test database connection
-                var studentCount = await _context.Students.CountAsync();
-                var sampleStudents = await _context.Students
-                    .Take(3)
-                    .Select(s => new { s.Id, s.FullName, s.Email })
-                    .ToListAsync();
-
-                // Test session
-                HttpContext.Session.SetString("DebugTest", "Working");
-                var sessionTest = HttpContext.Session.GetString("DebugTest");
-
-                var debugInfo = new
-                {
-                    DatabaseConnection = "Connected",
-                    TotalStudents = studentCount,
-                    SampleStudents = sampleStudents.Cast<object>().ToList(),
-                    SessionWorking = sessionTest == "Working",
-                    SessionId = HttpContext.Session.Id,
-                    CurrentStudentId = HttpContext.Session.GetString("StudentId"), // Changed to string
-                    Timestamp = DateTime.Now
-                };
-
-                return Json(debugInfo);
+                Console.WriteLine($"? ParseStudentYear: Matched numeric '{yearKey}' ? {numericYear}");
+                return numericYear;
             }
-            catch (Exception ex)
-            {
-                var errorInfo = new
-                {
-                    DatabaseConnection = $"Error: {ex.Message}",
-                    TotalStudents = 0,
-                    SampleStudents = new List<object>(),
-                    SessionWorking = false,
-                    SessionId = HttpContext.Session.Id,
-                    CurrentStudentId = HttpContext.Session.GetString("StudentId"), // Changed to string
-                    Timestamp = DateTime.Now,
-                    Error = ex.Message
-                };
 
-                return Json(errorInfo);
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> DebugCredentials()
-        {
-            try
-            {
-                // Get all students with their exact credentials (for debugging only)
-                var allStudents = await _context.Students
-                    .Select(s => new { 
-                        s.Id, 
-                        s.FullName, 
-                        s.Email, 
-                        PasswordLength = s.Password.Length,
-                        PasswordHash = s.Password.Substring(0, Math.Min(3, s.Password.Length)) + "***" // Show first 3 chars only for security
-                    })
-                    .ToListAsync();
-
-                var debugInfo = new
-                {
-                    TotalStudents = allStudents.Count,
-                    Students = allStudents,
-                    Message = "Use the exact email from this list to test login"
-                };
-
-                return Json(debugInfo);
-            }
-            catch (Exception ex)
-            {
-                return Json(new { Error = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DebugTestLogin(string email, string password)
-        {
-            try
-            {
-                Console.WriteLine($"?? DEBUG TEST LOGIN: Email='{email}', Password='{password}'");
-
-                // Check if student exists with this exact email
-                var studentWithEmail = await _context.Students
-                    .Where(s => s.Email == email)
-                    .Select(s => new { s.Id, s.FullName, s.Email, PasswordLength = s.Password.Length })
-                    .FirstOrDefaultAsync();
-
-                if (studentWithEmail == null)
-                {
-                    Console.WriteLine($"? No student found with email: '{email}'");
-                    return Json(new { 
-                        Success = false, 
-                        Message = "No student found with that email",
-                        Email = email
-                    });
-                }
-
-                // Check password match
-                var studentWithCredentials = await _context.Students
-                    .FirstOrDefaultAsync(s => s.Email == email && s.Password == password);
-
-                if (studentWithCredentials == null)
-                {
-                    Console.WriteLine($"? Password mismatch for email: '{email}'");
-                    return Json(new { 
-                        Success = false, 
-                        Message = "Email found but password doesn't match",
-                        Email = email,
-                        StudentFound = studentWithEmail
-                    });
-                }
-
-                // SUCCESS - Now try to log in
-                Console.WriteLine($"? Credentials match! Logging in student: {studentWithCredentials.FullName}");
-
-                // Set session - now using string
-                HttpContext.Session.SetString("StudentId", studentWithCredentials.Id);
-                await HttpContext.Session.CommitAsync();
-
-                // Verify session was set
-                var sessionCheck = HttpContext.Session.GetString("StudentId");
-                Console.WriteLine($"? Session set. StudentId in session: {sessionCheck}");
-
-                return Json(new { 
-                    Success = true, 
-                    Message = "Login successful!",
-                    StudentId = studentWithCredentials.Id,
-                    StudentName = studentWithCredentials.FullName,
-                    SessionId = HttpContext.Session.Id,
-                    RedirectUrl = Url.Action("MainDashboard", "Student")
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"? DEBUG TEST LOGIN ERROR: {ex.Message}");
-                return Json(new { 
-                    Success = false, 
-                    Message = ex.Message,
-                    Error = ex.ToString()
-                });
-            }
-        }
-
-        [HttpGet]
-        public IActionResult TestRouting()
-        {
-            return Json(new { 
-                Message = "?? Routing works!", 
-                Controller = "Student", 
-                Action = "TestRouting",
-                Time = DateTime.Now,
-                SessionId = HttpContext.Session.Id
-            });
-        }
-
-        [HttpGet]
-        public IActionResult TestTime()
-        {
-            return Json(new {
-                ServerLocalTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
-                ServerUtcTime = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff"),
-                ServerTimeZone = TimeZoneInfo.Local.Id,
-                ServerTimeZoneDisplayName = TimeZoneInfo.Local.DisplayName,
-                ServerTimeZoneOffset = TimeZoneInfo.Local.BaseUtcOffset.ToString(),
-                SystemTicks = Environment.TickCount64,
-                Message = "Compare ServerLocalTime with your actual current time to see if system clock is correct"
-            });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> SimpleDebug()
-        {
-            try
-            {
-                var studentCount = await _context.Students.CountAsync();
-                var students = await _context.Students.Take(5).ToListAsync();
-                
-                return Json(new {
-                    Success = true,
-                    Message = "Database connected successfully",
-                    StudentCount = studentCount,
-                    Students = students.Select(s => new { s.Id, s.FullName, s.Email }).ToList(),
-                    SessionWorking = HttpContext.Session.IsAvailable,
-                    SessionId = HttpContext.Session.Id
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new {
-                    Success = false,
-                    Error = ex.Message,
-                    Message = "Database connection failed"
-                });
-            }
+            // Log error if format is unrecognized
+            Console.WriteLine($"? ParseStudentYear: Unrecognized format '{yearString}' (key: '{yearKey}')");
+            return 0;
         }
     }
 

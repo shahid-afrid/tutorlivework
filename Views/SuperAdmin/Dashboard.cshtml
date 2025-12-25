@@ -1,0 +1,1171 @@
+@model TutorLiveMentor.Models.SuperAdminEnhancedDashboardViewModel
+@{
+    ViewData["Title"] = "Super Admin Dashboard";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TutorLiveMentor</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --royal-blue: #274060;
+            --warm-gold: #FFC857;
+            --cream: #F9FAF2;
+            --slate: #CED3DC;
+            --card-shadow: rgba(39,64,96,0.13);
+            --cseds-purple: #6f42c1;
+            --cseds-teal: #20c997;
+            --super-admin-red: #dc3545;
+            --super-admin-gold: #ffc107;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Montserrat', Arial, sans-serif;
+            background: linear-gradient(rgba(249, 250, 242, 0.15), rgba(255, 200, 87, 0.10)),
+            url('@Url.Content("~/images/RGMCET-BACKGROUND.jpg")') center center/cover no-repeat fixed;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            background: linear-gradient(135deg, var(--cream) 60%, var(--warm-gold) 100%);
+            opacity: 0.20;
+            pointer-events: none;
+        }
+
+        html {
+            background: linear-gradient(135deg, var(--cream) 60%, var(--warm-gold) 100%);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .super-admin-header {
+            background: linear-gradient(135deg, var(--super-admin-red), var(--super-admin-gold));
+            border-radius: 25px;
+            padding: 30px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 50px rgba(220, 53, 69, 0.3);
+            color: white;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-left h1 .logo-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+            animation: pulse 3s infinite;
+        }
+
+        @@keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @@keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header-left p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            color: white !important;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 12px 24px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgb(249, 250, 242);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--slate);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, var(--cseds-purple), var(--cseds-teal));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px var(--card-shadow);
+            border-color: var(--super-admin-gold);
+        }
+
+        .stat-card.super-admin::before {
+            background: linear-gradient(135deg, var(--super-admin-red), var(--super-admin-gold));
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-title {
+            font-size: 0.9em;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4em;
+            color: white;
+        }
+
+        .stat-icon.departments { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.students { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-icon.faculty { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-icon.subjects { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .stat-icon.admins { background: linear-gradient(135deg, var(--super-admin-red), var(--super-admin-gold)); }
+        .stat-icon.enrollments { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--royal-blue);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .section-card {
+            background: rgb(249, 250, 242);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--slate);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px var(--card-shadow);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid rgba(220, 53, 69, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--royal-blue);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title i {
+            color: var(--super-admin-red);
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--super-admin-red), var(--super-admin-gold));
+            border: none;
+            border-radius: 20px;
+            padding: 12px 24px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--super-admin-gold), var(--super-admin-red));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .departments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .department-card {
+            background: white;
+            border: 2px solid var(--slate);
+            border-radius: 18px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .department-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--cseds-purple), var(--cseds-teal));
+        }
+
+        .department-card.inactive::before {
+            background: #dc3545;
+        }
+
+        .department-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(111, 66, 193, 0.2);
+            border-color: var(--cseds-purple);
+        }
+
+        .dept-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .dept-name {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--royal-blue);
+            margin-bottom: 5px;
+        }
+
+        .dept-code {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--cseds-purple), var(--cseds-teal));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .dept-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .dept-status.active {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #155724;
+        }
+
+        .dept-status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #721c24;
+        }
+
+        .dept-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(111, 66, 193, 0.05);
+            border-radius: 12px;
+        }
+
+        .dept-stat {
+            text-align: center;
+        }
+
+        .dept-stat-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--cseds-purple);
+        }
+
+        .dept-stat-label {
+            font-size: 0.75em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dept-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(111, 66, 193, 0.1);
+        }
+
+        .dept-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .dept-btn.view {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .dept-btn.view:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+
+        .dept-btn.edit {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .dept-btn.edit:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+
+        .activity-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border: 2px solid var(--slate);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            border-color: var(--cseds-purple);
+            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.1);
+        }
+
+        .activity-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.create { background: linear-gradient(135deg, #11998e, #38ef7d); }
+        .activity-icon.update { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .activity-icon.delete { background: linear-gradient(135deg, #eb3349, #f45c43); }
+        .activity-icon.login { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-action {
+            font-weight: 600;
+            color: var(--royal-blue);
+            margin-bottom: 4px;
+        }
+
+        .activity-description {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 0.8em;
+            color: #999;
+        }
+
+        @@media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            }
+
+            .departments-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dept-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .header-left h1 {
+                font-size: 1.6em;
+            }
+        }
+
+        .app-footer {
+            background: rgba(249,250,242,0.95);
+            backdrop-filter: blur(12px);
+            border-top: 3px solid var(--slate);
+            padding: 25px 20px;
+            margin-top: 50px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .footer-line {
+            margin: 6px 0;
+            font-size: 0.9em;
+        }
+
+        .footer-highlight {
+            font-weight: 700;
+            color: #274060;
+        }
+
+        .footer-name {
+            font-weight: 600;
+            color: #274060;
+        }
+
+        /* Management Cards for Departments */
+        .dept-management-section {
+            background: linear-gradient(135deg, rgba(111, 66, 193, 0.05), rgba(32, 201, 151, 0.05));
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid var(--slate);
+        }
+
+        .dept-management-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--royal-blue);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dept-management-subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+        }
+
+        .management-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .management-card {
+            background: white;
+            border-radius: 18px;
+            padding: 25px;
+            border: 2px solid var(--slate);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .management-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+        }
+
+        .management-card.faculty-card::before {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .management-card.students-card::before {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .management-card.subjects-card::before {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+        }
+
+        .management-card.assignments-card::before {
+            background: linear-gradient(135deg, #6f42c1, #20c997);
+        }
+
+        .management-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px var(--card-shadow);
+            border-color: var(--cseds-purple);
+        }
+
+        .management-card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .management-card.faculty-card .management-card-icon {
+            color: #28a745;
+        }
+
+        .management-card.students-card .management-card-icon {
+            color: #9b59b6;
+        }
+
+        .management-card.subjects-card .management-card-icon {
+            color: #ffc107;
+        }
+
+        .management-card.assignments-card .management-card-icon {
+            color: #6f42c1;
+        }
+
+        .management-card-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--royal-blue);
+            margin-bottom: 10px;
+        }
+
+        .management-card-desc {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .management-card-stat {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--cseds-purple);
+            margin-bottom: 5px;
+        }
+
+        .management-card-label {
+            font-size: 0.85em;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Toggle Controls */
+        .dept-toggle-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid rgba(111, 66, 193, 0.2);
+        }
+
+        .dept-toggle-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--royal-blue);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(111, 66, 193, 0.05);
+            border-radius: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .toggle-label {
+            font-size: 0.9em;
+            color: #666;
+            flex: 1;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: #28a745;
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="super-admin-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>
+                        <img src="@Url.Content("~/images/RGMCET.jpg")" class="logo-img" alt="RGMCET Logo" />
+                        Super Admin Dashboard
+                    </h1>
+                    <p>Welcome back, <strong>@Model.CurrentSuperAdmin.Name</strong> | System-Wide Control Center</p>
+                </div>
+                <div class="header-actions">
+                    <a href="@Url.Action("ManageDepartments", "SuperAdmin")" class="glass-btn">
+                        <i class="fas fa-building"></i> Departments
+                    </a>
+                    <a href="@Url.Action("ManageAdmins", "SuperAdmin")" class="glass-btn">
+                        <i class="fas fa-users-cog"></i> Admins
+                    </a>
+                    <a href="@Url.Action("AuditLogs", "SuperAdmin")" class="glass-btn">
+                        <i class="fas fa-clipboard-list"></i> Audit Logs
+                    </a>
+                    <a href="@Url.Action("Logout", "SuperAdmin")" class="glass-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card super-admin">
+                <div class="stat-header">
+                    <span class="stat-title">Total Departments</span>
+                    <div class="stat-icon departments">
+                        <i class="fas fa-building"></i>
+                    </div>
+                </div>
+                <div class="stat-value">@Model.SystemStats.TotalDepartments</div>
+                <div class="stat-label">@Model.SystemStats.ActiveDepartments Active</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Students</span>
+                    <div class="stat-icon students">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                </div>
+                <div class="stat-value">@Model.SystemStats.TotalStudents</div>
+                <div class="stat-label">Across all departments</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Faculty</span>
+                    <div class="stat-icon faculty">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                </div>
+                <div class="stat-value">@Model.SystemStats.TotalFaculty</div>
+                <div class="stat-label">Active faculty members</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Subjects</span>
+                    <div class="stat-icon subjects">
+                        <i class="fas fa-book"></i>
+                    </div>
+                </div>
+                <div class="stat-value">@Model.SystemStats.TotalSubjects</div>
+                <div class="stat-label">Available subjects</div>
+            </div>
+
+            <div class="stat-card super-admin">
+                <div class="stat-header">
+                    <span class="stat-title">Department Admins</span>
+                    <div class="stat-icon admins">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                </div>
+                <div class="stat-value">@Model.SystemStats.TotalAdmins</div>
+                <div class="stat-label">Managing departments</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Enrollments</span>
+                    <div class="stat-icon enrollments">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                </div>
+                <div class="stat-value">@Model.SystemStats.TotalEnrollments</div>
+                <div class="stat-label">@Model.SystemStats.TodayEnrollments today</div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-building"></i>
+                    Departments Overview
+                </h2>
+                <div class="section-actions">
+                    <a href="@Url.Action("ManageDepartments", "SuperAdmin")" class="btn-primary">
+                        <i class="fas fa-cog"></i> Manage All Departments
+                    </a>
+                </div>
+            </div>
+
+            <div class="departments-grid">
+                @foreach (var dept in Model.Departments)
+                {
+                    <div class="department-card @(dept.IsActive ? "" : "inactive")">
+                        <div class="dept-header">
+                            <div>
+                                <div class="dept-name">@dept.DepartmentName</div>
+                                <span class="dept-code">@dept.DepartmentCode</span>
+                            </div>
+                            <span class="dept-status @(dept.IsActive ? "active" : "inactive")">
+                                <i class="fas fa-circle"></i> @(dept.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </div>
+
+                        <div class="dept-stats">
+                            <div class="dept-stat">
+                                <div class="dept-stat-value">@dept.TotalStudents</div>
+                                <div class="dept-stat-label">Students</div>
+                            </div>
+                            <div class="dept-stat">
+                                <div class="dept-stat-value">@dept.TotalFaculty</div>
+                                <div class="dept-stat-label">Faculty</div>
+                            </div>
+                            <div class="dept-stat">
+                                <div class="dept-stat-value">@dept.TotalSubjects</div>
+                                <div class="dept-stat-label">Subjects</div>
+                            </div>
+                        </div>
+
+
+                        <div class="dept-actions">
+                            <button class="dept-btn view" onclick="window.location.href='@Url.Action("ManageDepartments", "SuperAdmin")'">
+                                <i class="fas fa-eye"></i> View Details
+                            </button>
+                            <button class="dept-btn edit" onclick="window.location.href='@Url.Action("EditDepartment", "SuperAdmin", new { id = dept.DepartmentId })'">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-history"></i>
+                    Recent Activity
+                </h2>
+                <div class="section-actions">
+                    <a href="@Url.Action("AuditLogs", "SuperAdmin")" class="btn-primary">
+                        <i class="fas fa-list"></i> View All Logs
+                    </a>
+                </div>
+            </div>
+
+            <div class="activity-list">
+                @foreach (var activity in Model.RecentActivities.Take(10))
+                {
+                    <div class="activity-item">
+                        <div class="activity-icon @activity.ActionType.ToLower()">
+                            <i class="fas fa-@(activity.ActionType.ToLower() == "create" ? "plus" : activity.ActionType.ToLower() == "update" ? "edit" : activity.ActionType.ToLower() == "delete" ? "trash" : "sign-in-alt")"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-action">@activity.ActionType - @activity.ActionPerformedBy</div>
+                            <div class="activity-description">@activity.ActionDescription</div>
+                            <div class="activity-time">
+                                <i class="fas fa-clock"></i> @activity.ActionDate.ToString("MMM dd, yyyy hh:mm tt")
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Department Management Cards Section -->
+        @foreach (var deptStat in Model.DepartmentStatistics.Where(d => d.IsActive))
+        {
+            <div class="dept-management-section">
+                <div class="dept-management-title">
+                    <i class="fas fa-layer-group"></i>
+                    @deptStat.DepartmentName Management
+                </div>
+                <div class="dept-management-subtitle">
+                    Manage all aspects of @deptStat.DepartmentCode department from a centralized dashboard
+                </div>
+
+                <div class="management-cards-grid">
+                    <!-- Faculty Management Card -->
+                    <div class="management-card faculty-card" onclick="window.location.href='@Url.Action("ManageFaculty", "SuperAdmin", new { departmentId = deptStat.DepartmentId })'">
+                        <div class="management-card-icon">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="management-card-title">Faculty Management</div>
+                        <div class="management-card-desc">View and manage faculty members</div>
+                        <div class="management-card-stat">@deptStat.TotalFaculty</div>
+                        <div class="management-card-label">Total Faculty</div>
+                    </div>
+
+                    <!-- Students Management Card -->
+                    <div class="management-card students-card" onclick="window.location.href='@Url.Action("ManageStudents", "SuperAdmin", new { departmentId = deptStat.DepartmentId })'">
+                        <div class="management-card-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="management-card-title">Student Management</div>
+                        <div class="management-card-desc">View and manage student profiles</div>
+                        <div class="management-card-stat">@deptStat.TotalStudents</div>
+                        <div class="management-card-label">Total Students</div>
+                    </div>
+
+                    <!-- Subjects Management Card -->
+                    <div class="management-card subjects-card" onclick="window.location.href='@Url.Action("ManageSubjects", "SuperAdmin", new { departmentId = deptStat.DepartmentId })'">
+                        <div class="management-card-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="management-card-title">Subject Management</div>
+                        <div class="management-card-desc">Create and manage department subjects</div>
+                        <div class="management-card-stat">@deptStat.TotalSubjects</div>
+                        <div class="management-card-label">Total Subjects</div>
+                    </div>
+
+                    <!-- Subject Assignments Card -->
+                    <div class="management-card assignments-card" onclick="window.location.href='@Url.Action("ManageSubjectAssignments", "SuperAdmin", new { departmentId = deptStat.DepartmentId })'">
+                        <div class="management-card-icon">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <div class="management-card-title">Faculty-Subject Assignments</div>
+                        <div class="management-card-desc">Assign faculty to subjects</div>
+                        <div class="management-card-stat">@deptStat.TotalAssignments</div>
+                        <div class="management-card-label">Total Assignments</div>
+                    </div>
+                </div>
+
+                <!-- Toggle Controls -->
+                <div class="dept-toggle-section">
+                    <div class="dept-toggle-title">
+                        <i class="fas fa-sliders-h"></i>
+                        Department Feature Controls
+                    </div>
+                    <div class="toggle-controls">
+                        <div class="toggle-item">
+                            <span class="toggle-label">Student Registration</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" 
+                                       data-dept-id="@deptStat.DepartmentId" 
+                                       data-feature="allowstudentregistration" 
+                                       @(deptStat.AllowStudentRegistration ? "checked" : "")
+                                       onchange="toggleDepartmentFeature(this)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <span class="toggle-label">Faculty Assignment</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" 
+                                       data-dept-id="@deptStat.DepartmentId" 
+                                       data-feature="allowfacultyassignment" 
+                                       @(deptStat.AllowFacultyAssignment ? "checked" : "")
+                                       onchange="toggleDepartmentFeature(this)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <span class="toggle-label">Subject Selection</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" 
+                                       data-dept-id="@deptStat.DepartmentId" 
+                                       data-feature="allowsubjectselection" 
+                                       @(deptStat.AllowSubjectSelection ? "checked" : "")
+                                       onchange="toggleDepartmentFeature(this)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-item">
+                            <span class="toggle-label">Department Active</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" 
+                                       data-dept-id="@deptStat.DepartmentId" 
+                                       data-feature="isactive" 
+                                       @(deptStat.IsActive ? "checked" : "")
+                                       onchange="toggleDepartmentFeature(this)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="section-card">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        console.log('? Super Admin Dashboard Loaded');
+        console.log('Total Departments:', @Model.SystemStats.TotalDepartments);
+        console.log('Total Students:', @Model.SystemStats.TotalStudents);
+
+        // Toggle Department Feature Function
+        function toggleDepartmentFeature(checkbox) {
+            const departmentId = parseInt(checkbox.dataset.deptId);
+            const featureName = checkbox.dataset.feature;
+            const enabled = checkbox.checked;
+
+            console.log(`Toggling ${featureName} for department ${departmentId}: ${enabled}`);
+
+            // Show loading indicator
+            const toggleItem = checkbox.closest('.toggle-item');
+            const originalBg = toggleItem.style.backgroundColor;
+            toggleItem.style.backgroundColor = 'rgba(255, 193, 7, 0.2)';
+
+            $.ajax({
+                url: '@Url.Action("ToggleDepartmentFeature", "SuperAdmin")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    departmentId: departmentId,
+                    featureName: featureName,
+                    enabled: enabled
+                }),
+                success: function (response) {
+                    if (response.success) {
+                        console.log('? Feature toggled successfully');
+                        toggleItem.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+                        
+                        setTimeout(() => {
+                            toggleItem.style.backgroundColor = originalBg;
+                        }, 2000);
+
+                        // Show success message
+                        showNotification('Feature Updated', 'success');
+                    } else {
+                        console.error('? Toggle failed:', response.message);
+                        checkbox.checked = !enabled; // Revert
+                        toggleItem.style.backgroundColor = 'rgba(220, 53, 69, 0.2)';
+                        
+                        setTimeout(() => {
+                            toggleItem.style.backgroundColor = originalBg;
+                        }, 2000);
+
+                        showNotification('Toggle Failed: ' + response.message, 'error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('? AJAX Error:', error);
+                    checkbox.checked = !enabled; // Revert
+                    toggleItem.style.backgroundColor = 'rgba(220, 53, 69, 0.2)';
+                    
+                    setTimeout(() => {
+                        toggleItem.style.backgroundColor = originalBg;
+                    }, 2000);
+
+                    showNotification('Network Error', 'error');
+                }
+            });
+        }
+
+        // Show notification function
+        function showNotification(message, type) {
+            const notification = $('<div>')
+                .css({
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    padding: '15px 25px',
+                    borderRadius: '10px',
+                    backgroundColor: type === 'success' ? '#28a745' : '#dc3545',
+                    color: 'white',
+                    fontWeight: '600',
+                    zIndex: '10000',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                    animation: 'slideInRight 0.3s ease'
+                })
+                .text(message);
+
+            $('body').append(notification);
+
+            setTimeout(() => {
+                notification.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+
+        // Add animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
